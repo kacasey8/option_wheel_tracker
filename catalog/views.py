@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import StockTicker
+from django.views import generic
 
 def index(request):
     stock_tickers = StockTicker.objects.all()
@@ -10,3 +11,10 @@ def index(request):
         'stable_choices': stable_choices,
     }
     return render(request, 'index.html', context=context)
+
+class StockTickerListView(generic.ListView):
+    model = StockTicker
+
+
+class StockTickerDetailView(generic.DetailView):
+    model = StockTicker

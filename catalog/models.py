@@ -21,6 +21,9 @@ class StockTicker(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse('stockticker-detail', args=[str(self.id)])
+
 class OptionPurchase(models.Model):
     """Represents an option sold on a specific day"""
     stock_ticker = models.ForeignKey(
@@ -52,12 +55,11 @@ class OptionPurchase(models.Model):
     )
 
     def __str__(self):
-    	# TODO
+        # TODO
         return f"{str(self.stock_ticker)}: {self.call_or_put} {self.expiration_date}"
 
     def get_absolute_url(self):
-	    """Returns the url to access a particular instance of the model."""
-	    return reverse('model-detail-view', args=[str(self.id)])
+        return reverse('model-detail-view', args=[str(self.id)])
 
 class OptionWheel(models.Model):
     """Referenced by multiple OptionPurchase objects to track profit from using the wheel strategy"""
