@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
-import django_heroku
 
 app_stage = os.environ.get('DJANGO_APP_STAGE', 'dev')
 if app_stage == 'prod':
@@ -111,3 +110,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
 LOGIN_REDIRECT_URL = '/'
+
+if app_stage == 'prod':
+    import django_heroku
+    # Activate Django-Heroku.
+    django_heroku.settings(locals())

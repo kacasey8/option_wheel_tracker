@@ -1,9 +1,9 @@
-import django_heroku
 import dj_database_url
+from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 db_from_env = dj_database_url.config(conn_max_age=600)
-print("hello")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -17,6 +17,3 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 DEBUG = False
-
-# Activate Django-Heroku.
-django_heroku.settings(locals())
