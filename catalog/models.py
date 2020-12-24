@@ -59,7 +59,7 @@ class OptionPurchase(models.Model):
         return f"{str(self.stock_ticker)}: {self.call_or_put} {self.expiration_date}"
 
     def get_absolute_url(self):
-        return reverse('model-detail-view', args=[str(self.id)])
+        return reverse('purchase-detail-view', args=[str(self.id)])
 
 class OptionWheel(models.Model):
     """Referenced by multiple OptionPurchase objects to track profit from using the wheel strategy"""
@@ -69,5 +69,14 @@ class OptionWheel(models.Model):
     )
     is_active = models.BooleanField()
     total_profit = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
-    total_days_active = models.DateTimeField(default=None, null=True)
+    total_days_active = models.IntegerField(default=None, null=True)
     collatoral = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
+
+    def __str__(self):
+        first_option_purchase = OptionPurchase.objects.filter(option_wheel=self.id).first()
+        if first_option_purchase is None:
+            return "No options associated with this wheel"
+        return f"{first_option_purchase.stock_ticker} {first_option_purchase.purchase_date.strftime('%Y-%m-%d')} ({self.id})"
+
+    def get_absolute_url(self):
+        return reverse('wheel-detail', args=[str(self.id)])
