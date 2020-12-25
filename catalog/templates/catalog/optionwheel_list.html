@@ -1,0 +1,31 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>My Wheels</h1>
+  TODO SUGGESTIONS
+
+  <h2>Active</h2>
+  {% if wheels.active_wheels %}
+      <ul>
+        {% for wheel in wheels.active_wheels %}
+          <li>
+            <a href="{{ wheel.get_absolute_url }}">{{ wheel }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+  {% else %}
+    <p>You have no active wheels</p>
+  {% endif %}
+  <h2>Completed</h2>
+  {% if wheels.completed_wheels %}
+      <ul>
+        {% for wheel in wheels.completed_wheels %}
+          <li>
+            <a href="{{ wheel.get_absolute_url }}">{{ wheel }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+  {% else %}
+    <p>You have no completed wheels</p>
+  {% endif %} 
+{% endblock %}

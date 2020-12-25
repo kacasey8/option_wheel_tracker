@@ -1,0 +1,12 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Option Wheel: {{ wheel }}</h1>
+  <p><strong>Is Active:</strong> {{ wheel.is_active }}</p>
+  <p><strong>Total Profit:</strong> {{ wheel.total_profit }}</p>
+
+  TODO show Calls / puts on this wheel
+  <br>
+  TODO allow editing status of most recent wheel as expired or assigned
+
+{% endblock %}
