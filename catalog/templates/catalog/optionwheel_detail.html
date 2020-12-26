@@ -5,6 +5,21 @@
   <p><strong>Is Active:</strong> {{ wheel.is_active }}</p>
   <p><strong>Total Profit:</strong> {{ wheel.total_profit }}</p>
 
+  <a href="{% url 'purchase-create' wheel_id=wheel.pk %}">Add New Purchase</a>
+  <br>
+  <br>
+
+  <ul>
+    {% for purchase in purchases %}
+      <li>
+        <a href="{% url 'purchase-update' wheel_id=wheel.pk pk=purchase.pk %}">{{ purchase }}</a>
+        Purchased {{purchase.call_or_put}} on {{ purchase.purchase_date.date }} for
+        {{ purchase.premium }} premium
+      </li>
+    {% endfor %}
+  </ul>
+  <br>
+
   TODO show Calls / puts on this wheel
   <br>
   TODO allow editing status of most recent wheel as expired or assigned
