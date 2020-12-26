@@ -46,7 +46,7 @@ class OptionPurchase(models.Model):
 
     class CallOrPut(models.TextChoices):
         CALL = 'C', _('Call')
-        PUT = 'P', _('P')
+        PUT = 'P', _('Put')
 
     call_or_put = models.CharField(
         max_length=1,
