@@ -6,3 +6,4 @@ local_settings.py
 db.sqlite3
 venv/
 .postgres_command
+.vscode/
