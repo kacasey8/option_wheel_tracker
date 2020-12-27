@@ -1,6 +1,11 @@
 from django.shortcuts import render, reverse
-from .models import OptionPurchase, StockTicker, OptionWheel
+from catalog.forms import OptionPurchaseForm
+from catalog.models import OptionPurchase, StockTicker, OptionWheel
 from django.views import generic
+
+from datetime import timedelta
+from django.utils import timezone
+
 
 def index(request):
     stock_tickers = StockTicker.objects.all()
@@ -50,10 +55,19 @@ class OptionWheelDetailView(generic.DetailView):
 
 class OptionPurchaseCreate(generic.edit.CreateView):
     model = OptionPurchase
-    fields = '__all__' # TODO: exclude user/wheel_id
+    form_class = OptionPurchaseForm
 
     def get_initial(self):
-        return {'user': self.request.user, 'option_wheel': self.kwargs.get('wheel_id')}
+        user = self.request.user
+        option_wheel = self.kwargs.get('wheel_id')
+        now = timezone.now()
+        next_friday = now + timedelta((3 - now.weekday()) % 7 + 1)
+        return {
+            'user': user, 
+            'option_wheel': option_wheel,
+            'purchase_date': now,
+            'expiration_date': next_friday
+        }
 
     def get_success_url(self):
         wheel_id = self.kwargs.get('wheel_id')
@@ -62,7 +76,7 @@ class OptionPurchaseCreate(generic.edit.CreateView):
 
 class OptionPurchaseUpdate(generic.edit.UpdateView):
     model = OptionPurchase
-    fields = '__all__' # TODO: exclude user/wheel_id
+    form_class = OptionPurchaseForm
 
 
 class OptionPurchaseDelete(generic.edit.DeleteView):
