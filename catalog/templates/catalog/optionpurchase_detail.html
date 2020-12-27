@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Option Purchase: {{ optionpurchase }}</h1>
+  <a href="{% url 'wheel-detail' pk=optionpurchase.option_wheel.pk %}">View Wheel</a>
+  <p><strong>Purchase Date:</strong> {{ optionpurchase.purchase_date }}</p>
+  <p><strong>Expiration Date:</strong> {{ optionpurchase.expiration_date }}</p>
+
+  <p><strong>Premium:</strong> {{ optionpurchase.premium }}</p>
+  <p><strong>Strike</strong> {{ optionpurchase.strike }}</p>
+  <p><strong>Price at Date:</strong> {{ optionpurchase.price_at_date }}</p>
+  <p><strong>Type:</strong> {{ optionpurchase.call_or_put }}</p>
+
+  <a href="{% url 'purchase-update' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}">Edit</a>
+  <a href="{% url 'purchase-delete' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}">Delete</a>
+{% endblock %}

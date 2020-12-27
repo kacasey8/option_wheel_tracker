@@ -59,7 +59,7 @@ class OptionPurchase(models.Model):
         return f"{str(self.stock_ticker)}: {self.call_or_put} {self.expiration_date}"
 
     def get_absolute_url(self):
-        return reverse('purchase-detail-view', args=[str(self.id)])
+        return reverse('purchase-detail-view', args=[str(self.option_wheel.pk), str(self.id)])
 
 class OptionWheel(models.Model):
     """Referenced by multiple OptionPurchase objects to track profit from using the wheel strategy"""

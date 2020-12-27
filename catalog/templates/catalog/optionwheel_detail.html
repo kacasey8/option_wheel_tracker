@@ -12,7 +12,7 @@
   <ul>
     {% for purchase in purchases %}
       <li>
-        <a href="{% url 'purchase-update' wheel_id=wheel.pk pk=purchase.pk %}">{{ purchase }}</a>
+        <a href="{{ purchase.get_absolute_url }}">{{ purchase }}</a>
         Purchased {{purchase.call_or_put}} on {{ purchase.purchase_date.date }} for
         {{ purchase.premium }} premium
       </li>

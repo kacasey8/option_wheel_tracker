@@ -18,6 +18,11 @@ class StockTickerListView(generic.ListView):
 class StockTickerDetailView(generic.DetailView):
     model = StockTicker
 
+ 
+class OptionPurchaseDetailView(generic.DetailView):
+    model = OptionPurchase
+
+
 class OptionWheelListView(generic.ListView):
     model = OptionWheel
     context_object_name = 'wheels'
@@ -59,9 +64,6 @@ class OptionPurchaseUpdate(generic.edit.UpdateView):
     model = OptionPurchase
     fields = '__all__' # TODO: exclude user/wheel_id
 
-    def get_success_url(self):
-        wheel_id = self.kwargs.get('wheel_id')
-        return reverse('wheel-detail', args=[str(wheel_id)])
 
 class OptionPurchaseDelete(generic.edit.DeleteView):
     model = OptionPurchase
