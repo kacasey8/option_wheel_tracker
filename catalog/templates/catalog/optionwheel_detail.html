@@ -5,7 +5,7 @@
   <p><strong>Is Active:</strong> {{ wheel.is_active }}</p>
   <p><strong>Total Profit:</strong> {{ wheel.total_profit }}</p>
 
-  <a href="{% url 'purchase-create' wheel_id=wheel.pk %}">Add New Purchase</a>
+  <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">Add Purchase</a>
   <br>
   <br>
 

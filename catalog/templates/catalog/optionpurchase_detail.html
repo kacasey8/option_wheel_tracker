@@ -11,6 +11,6 @@
   <p><strong>Price at Date:</strong> {{ optionpurchase.price_at_date }}</p>
   <p><strong>Type:</strong> {{ optionpurchase.call_or_put }}</p>
 
-  <a href="{% url 'purchase-update' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}">Edit</a>
-  <a href="{% url 'purchase-delete' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}">Delete</a>
+  <a type="button" class="btn btn-primary" href="{% url 'purchase-update' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}">Edit</a>
+  <a type="button" class="btn btn-danger" href="{% url 'purchase-delete' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}" variant="danger">Delete</a>
 {% endblock %}
