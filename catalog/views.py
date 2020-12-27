@@ -48,9 +48,12 @@ class OptionWheelDetailView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(OptionWheelDetailView, self).get_context_data(**kwargs)
         user = self.request.user
-        option_wheel = self.kwargs.get('pk')
-        purchases = OptionPurchase.objects.filter(user=user, option_wheel=option_wheel).order_by('-expiration_date')
+        option_wheel_id = self.kwargs.get('pk')
+        purchases = OptionPurchase.objects.filter(user=user, option_wheel=option_wheel_id).order_by('-expiration_date')
+        revenue = sum(purchase.premium for purchase in purchases)
+        cost_basis = purchases[0].strike - revenue
         context['purchases'] = purchases
+        context['cost_basis'] = cost_basis
         return context
 
 class OptionPurchaseCreate(generic.edit.CreateView):
