@@ -72,8 +72,11 @@ class OptionWheel(models.Model):
     total_days_active = models.IntegerField(default=None, null=True)
     collatoral = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
 
+    def get_first_option_purchase(self):
+        return OptionPurchase.objects.filter(option_wheel=self.id).first()
+
     def __str__(self):
-        first_option_purchase = OptionPurchase.objects.filter(option_wheel=self.id).first()
+        first_option_purchase = self.get_first_option_purchase()
         if first_option_purchase is None:
             return "No options associated with this wheel"
         return f"{first_option_purchase.stock_ticker} {first_option_purchase.purchase_date.strftime('%Y-%m-%d')} ({self.id})"

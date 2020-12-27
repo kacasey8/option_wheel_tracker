@@ -7,3 +7,4 @@ db.sqlite3
 venv/
 .postgres_command
 .vscode/
+**.DS_Store

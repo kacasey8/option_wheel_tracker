@@ -59,14 +59,16 @@ class OptionPurchaseCreate(generic.edit.CreateView):
 
     def get_initial(self):
         user = self.request.user
-        option_wheel = self.kwargs.get('wheel_id')
+        option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
+        first_option_purchase = option_wheel.get_first_option_purchase()
         now = timezone.now()
         next_friday = now + timedelta((3 - now.weekday()) % 7 + 1)
         return {
             'user': user, 
             'option_wheel': option_wheel,
             'purchase_date': now,
-            'expiration_date': next_friday
+            'expiration_date': next_friday,
+            'stock_ticker': first_option_purchase.stock_ticker,
         }
 
     def get_success_url(self):
