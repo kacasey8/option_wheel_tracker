@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, reverse
 from .models import OptionPurchase, StockTicker, OptionWheel
 from django.views import generic
 
@@ -43,21 +43,29 @@ class OptionWheelDetailView(generic.DetailView):
         context['purchases'] = purchases
         return context
 
-
 class OptionPurchaseCreate(generic.edit.CreateView):
     model = OptionPurchase
     fields = '__all__' # TODO: exclude user/wheel_id
-    success_url = '/' # TODO: better URL, send back to wheel
 
-    def get_initial(self, *args, **kwargs):
+    def get_initial(self):
         return {'user': self.request.user, 'option_wheel': self.kwargs.get('wheel_id')}
+
+    def get_success_url(self):
+        wheel_id = self.kwargs.get('wheel_id')
+        return reverse('wheel-detail', args=[str(wheel_id)])
 
 
 class OptionPurchaseUpdate(generic.edit.UpdateView):
     model = OptionPurchase
     fields = '__all__' # TODO: exclude user/wheel_id
-    success_url = '/' # TODO: better URL
+
+    def get_success_url(self):
+        wheel_id = self.kwargs.get('wheel_id')
+        return reverse('wheel-detail', args=[str(wheel_id)])
 
 class OptionPurchaseDelete(generic.edit.DeleteView):
     model = OptionPurchase
-    success_url = '/' # TODO better url
+
+    def get_success_url(self):
+        wheel_id = self.kwargs.get('wheel_id')
+        return reverse('wheel-detail', args=[str(wheel_id)])
