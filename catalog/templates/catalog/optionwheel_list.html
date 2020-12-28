@@ -4,6 +4,10 @@
   <h1>My Wheels</h1>
   TODO SUGGESTIONS
 
+  <br>
+  <a type="button" class="btn btn-primary" href="{% url 'wheel-create' %}">New Wheel</a>
+  <br>
+
   <h2>Active</h2>
   {% if wheels.active_wheels %}
       <ul>

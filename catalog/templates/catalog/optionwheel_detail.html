@@ -4,7 +4,7 @@
   <h1>Option Wheel: {{ wheel }}</h1>
   <p><strong>Cost Basis:</strong> {{ cost_basis }}</p>
 
-  <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">Add Purchase</a>
+  <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">New Purchase</a>
   <br>
   <br>
 
@@ -17,6 +17,9 @@
       </li>
     {% endfor %}
   </ul>
+
+  <br>
+  <a type="button" class="btn btn-danger" href="{% url 'wheel-delete' pk=wheel.pk %}" variant="danger">Delete Wheel</a>
   <br>
 
   TODO show Calls / puts on this wheel

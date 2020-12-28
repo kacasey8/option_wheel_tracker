@@ -1,10 +1,12 @@
-from django.shortcuts import render, reverse
-from catalog.forms import OptionPurchaseForm
-from catalog.models import OptionPurchase, StockTicker, OptionWheel
+from django.shortcuts import render, reverse, redirect
+from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views import generic
 
+from catalog.forms import OptionPurchaseForm
+from catalog.models import OptionPurchase, StockTicker, OptionWheel
+
 from datetime import timedelta
-from django.utils import timezone
 
 
 def index(request):
@@ -51,10 +53,22 @@ class OptionWheelDetailView(generic.DetailView):
         option_wheel_id = self.kwargs.get('pk')
         purchases = OptionPurchase.objects.filter(user=user, option_wheel=option_wheel_id).order_by('-expiration_date')
         revenue = sum(purchase.premium for purchase in purchases)
-        cost_basis = purchases[0].strike - revenue
+        cost_basis = 'N/A'
+        if purchases:
+            cost_basis = purchases[0].strike - revenue
         context['purchases'] = purchases
         context['cost_basis'] = cost_basis
         return context
+
+def create_wheel(request):
+    user = request.user
+    option_wheel = OptionWheel(user=user, is_active=True)
+    option_wheel.save()
+    return redirect('wheel-detail', pk=option_wheel.pk)
+
+class OptionWheelDelete(generic.edit.DeleteView):
+    model = OptionWheel
+    success_url = reverse_lazy('wheels')
 
 class OptionPurchaseCreate(generic.edit.CreateView):
     model = OptionPurchase
@@ -63,7 +77,10 @@ class OptionPurchaseCreate(generic.edit.CreateView):
     def get_initial(self):
         user = self.request.user
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
+        stock_ticker = None
         first_option_purchase = option_wheel.get_first_option_purchase()
+        if first_option_purchase:
+            stock_ticker = first_option_purchase.stock_ticker
         now = timezone.now()
         next_friday = now + timedelta((3 - now.weekday()) % 7 + 1)
         return {
@@ -71,7 +88,7 @@ class OptionPurchaseCreate(generic.edit.CreateView):
             'option_wheel': option_wheel,
             'purchase_date': now,
             'expiration_date': next_friday,
-            'stock_ticker': first_option_purchase.stock_ticker,
+            'stock_ticker': stock_ticker,
         }
 
     def get_success_url(self):

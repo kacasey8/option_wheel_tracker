@@ -10,5 +10,8 @@ urlpatterns = [
     path('wheels/<int:wheel_id>/purchase/<int:pk>', views.OptionPurchaseDetailView.as_view(), name='purchase-detail-view'),
     path('wheels/<int:wheel_id>/purchase/create/', views.OptionPurchaseCreate.as_view(), name='purchase-create'),
     path('wheels/<int:wheel_id>/purchase/<int:pk>/update/', views.OptionPurchaseUpdate.as_view(), name='purchase-update'),
-    path('wheels/<int:wheel_id>/purchase/<int:pk>/delete/', views.OptionPurchaseDelete.as_view(), name='purchase-delete')
+    path('wheels/<int:wheel_id>/purchase/<int:pk>/delete/', views.OptionPurchaseDelete.as_view(), name='purchase-delete'),
+    path('wheels/create/', views.create_wheel, name='wheel-create'),
+    path('wheels/<int:pk>/delete/', views.OptionWheelDelete.as_view(), name='wheel-delete'),
+
 ]
