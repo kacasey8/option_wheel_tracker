@@ -22,7 +22,7 @@ class StockTicker(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('stockticker-detail', args=[str(self.id)])
+        return reverse('ticker-detail', args=[str(self.id)])
 
 class OptionPurchase(models.Model):
     """Represents an option sold on a specific day"""

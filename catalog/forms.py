@@ -1,5 +1,10 @@
 from django import forms
-from .models import OptionPurchase
+from catalog.models import OptionPurchase, StockTicker
+
+class StockTickerForm(forms.ModelForm):
+    class Meta:
+        model = StockTicker
+        fields = '__all__'
 
 class OptionPurchaseForm(forms.ModelForm):
     class Meta:

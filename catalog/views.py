@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import generic
 
-from catalog.forms import OptionPurchaseForm
+from catalog.forms import OptionPurchaseForm, StockTickerForm
 from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
 from datetime import timedelta
@@ -24,6 +24,22 @@ class StockTickerListView(generic.ListView):
  
 class StockTickerDetailView(generic.DetailView):
     model = StockTicker
+
+class StockTickerCreate(generic.edit.CreateView):
+    model = StockTicker
+    form_class = StockTickerForm
+    success_url = reverse_lazy('tickers')
+
+
+class StockTickerUpdate(generic.edit.UpdateView):
+    model = StockTicker
+    form_class = StockTickerForm
+    success_url = reverse_lazy('tickers')
+
+
+class StockTickerDelete(generic.edit.DeleteView):
+    model = StockTicker
+    success_url = reverse_lazy('tickers')
 
  
 class OptionPurchaseDetailView(generic.DetailView):
