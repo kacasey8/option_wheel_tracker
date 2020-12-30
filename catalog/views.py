@@ -1,9 +1,11 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, reverse, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import generic
 
-from catalog.forms import OptionPurchaseForm, StockTickerForm
+from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm
 from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
 from datetime import timedelta
@@ -18,6 +20,19 @@ def index(request):
         'stable_choices': stable_choices,
     }
     return render(request, 'index.html', context=context)
+
+def signup(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('signup-complete')
+    else:
+        form = SignupForm()
+    return render(request, 'signup.html', {'form': form})
+
+def signup_complete(request):
+    return render(request, 'signup_complete.html')
 
 class StockTickerListView(generic.ListView):
     model = StockTicker
@@ -45,8 +60,7 @@ class StockTickerDelete(generic.edit.DeleteView):
 class OptionPurchaseDetailView(generic.DetailView):
     model = OptionPurchase
 
-
-class OptionWheelListView(generic.ListView):
+class OptionWheelListView(LoginRequiredMixin, generic.ListView):
     model = OptionWheel
     context_object_name = 'wheels'
     template_name = 'catalog/optionwheel_list.html'
@@ -59,7 +73,7 @@ class OptionWheelListView(generic.ListView):
         }
         return queryset
 
-class OptionWheelDetailView(generic.DetailView):
+class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
     model = OptionWheel
     context_object_name = 'wheel'
 
@@ -76,6 +90,7 @@ class OptionWheelDetailView(generic.DetailView):
         context['cost_basis'] = cost_basis
         return context
 
+@login_required
 def create_wheel(request):
     user = request.user
     option_wheel = OptionWheel(user=user, is_active=True)
@@ -86,7 +101,7 @@ class OptionWheelDelete(generic.edit.DeleteView):
     model = OptionWheel
     success_url = reverse_lazy('wheels')
 
-class OptionPurchaseCreate(generic.edit.CreateView):
+class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
     model = OptionPurchase
     form_class = OptionPurchaseForm
 

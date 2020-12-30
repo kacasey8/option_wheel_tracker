@@ -3,6 +3,8 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('signup/', views.signup, name='signup'),
+    path('signup_complete/', views.signup_complete, name='signup-complete'),
     path('tickers/', views.StockTickerListView.as_view(), name='tickers'),
     path('tickers/<int:pk>', views.StockTickerDetailView.as_view(), name='ticker-detail'),
     path('tickers/create/', views.StockTickerCreate.as_view(), name='ticker-create'),
