@@ -3,4 +3,12 @@
 {% block content %}
   <h1>Stock Ticker: {{ stockticker.name }}</h1>
   <p><strong>Recommendation:</strong> {{ stockticker.recommendation }}</p>
+  <p><strong>Current Price:</strong> {{ current_price | floatformat:2 }}</p>
+  <ul>
+    {% for put_stat in put_stats %}
+      <li>
+        {{ put_stat }}
+      </li>
+    {% endfor %}
+  </ul>
 {% endblock %}

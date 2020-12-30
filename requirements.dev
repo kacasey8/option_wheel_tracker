@@ -14,12 +14,19 @@ gunicorn==20.0.4
 heroku==0.1.4
 idna==2.10
 importlib-metadata==3.3.0
+lxml==4.6.2
+mibian==0.1.3
+multitasking==0.0.9
+numpy==1.19.4
+pandas==1.2.0
 pbr==5.5.1
+pdblp==0.1.8
 pipreqs==0.4.10
 psycopg2-binary==2.8.6
-python-dateutil==1.5
+python-dateutil==2.8.1
 pytz==2020.4
 requests==2.24.0
+scipy==1.5.4
 selenium==3.141.0
 six==1.12.0
 sqlparse==0.4.1
@@ -32,4 +39,5 @@ virtualenvwrapper==4.8.4
 webdriver-manager==3.2.2
 whitenoise==5.2.0
 yarg==0.1.9
+yfinance==0.1.55
 zipp==3.4.0
