@@ -12,8 +12,9 @@
     {% for purchase in purchases %}
       <li>
         <a href="{{ purchase.get_absolute_url }}">{{ purchase }}</a>
-        Purchased {{purchase.call_or_put}} on {{ purchase.purchase_date.date }} for
-        {{ purchase.premium }} premium
+        Purchased on {{ purchase.purchase_date.date }} for
+      <strong>${{ purchase.premium }}</strong> premium
+      <i>({{ purchase.stock_ticker }} at ${{ purchase.price_at_date }})</i>
       </li>
     {% endfor %}
   </ul>
