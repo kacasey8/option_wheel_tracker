@@ -3,6 +3,9 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.urls import reverse
 
+from datetime import datetime
+
+
 class StockTicker(models.Model):
     """Represents a publicly traded stock symbol"""
     name = models.CharField(max_length=200, help_text='Enter a ticker, like TSLA.')
@@ -22,7 +25,7 @@ class StockTicker(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('stockticker-detail', args=[str(self.id)])
+        return reverse('ticker-detail', args=[str(self.id)])
 
 class OptionPurchase(models.Model):
     """Represents an option sold on a specific day"""
@@ -56,7 +59,7 @@ class OptionPurchase(models.Model):
 
     def __str__(self):
         # TODO
-        return f"{str(self.stock_ticker)}: {self.call_or_put} {self.expiration_date}"
+        return f"${self.strike} {self.call_or_put} {str(self.stock_ticker)} (exp. {self.expiration_date.strftime('%m/%d')})"
 
     def get_absolute_url(self):
         return reverse('purchase-detail-view', args=[str(self.option_wheel.pk), str(self.id)])
@@ -74,12 +77,22 @@ class OptionWheel(models.Model):
 
     def get_first_option_purchase(self):
         return OptionPurchase.objects.filter(option_wheel=self.id).first()
+    
+    def get_open_date(self):
+        first = self.get_first_option_purchase()
+        if first:
+            return first.purchase_date.date()
+        return datetime.min.date()
 
     def __str__(self):
         first_option_purchase = self.get_first_option_purchase()
         if first_option_purchase is None:
             return "No options associated with this wheel"
-        return f"{first_option_purchase.stock_ticker} {first_option_purchase.purchase_date.strftime('%Y-%m-%d')} ({self.id})"
+        strike = first_option_purchase.strike
+        call_or_put = first_option_purchase.call_or_put
+        ticker = first_option_purchase.stock_ticker
+        open = first_option_purchase.purchase_date.strftime('%m/%d')
+        return f"${strike} {call_or_put} {str(ticker)} (opened {open})"
 
     def get_absolute_url(self):
         return reverse('wheel-detail', args=[str(self.id)])

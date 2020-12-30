@@ -1,9 +1,11 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, reverse, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import generic
 
-from catalog.forms import OptionPurchaseForm
+from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm
 from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
 from datetime import datetime, timedelta, date
@@ -28,6 +30,21 @@ def index(request):
     }
     return render(request, 'index.html', context=context)
 
+def signup(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('signup-complete')
+    else:
+        form = SignupForm()
+    return render(request, 'signup.html', {'form': form})
+
+def signup_complete(request):
+    return render(request, 'signup_complete.html')
+
+
+# StockTicker views
 class StockTickerListView(generic.ListView):
     model = StockTicker
  
@@ -81,21 +98,40 @@ class StockTickerDetailView(generic.DetailView):
 class OptionPurchaseDetailView(generic.DetailView):
     model = OptionPurchase
 
+class StockTickerCreate(generic.edit.CreateView):
+    model = StockTicker
+    form_class = StockTickerForm
+    success_url = reverse_lazy('tickers')
 
-class OptionWheelListView(generic.ListView):
+class StockTickerUpdate(generic.edit.UpdateView):
+    model = StockTicker
+    form_class = StockTickerForm
+    success_url = reverse_lazy('tickers')
+
+class StockTickerDelete(generic.edit.DeleteView):
+    model = StockTicker
+    success_url = reverse_lazy('tickers')
+
+
+# OptionWheel views
+class OptionWheelListView(LoginRequiredMixin, generic.ListView):
     model = OptionWheel
     context_object_name = 'wheels'
     template_name = 'catalog/optionwheel_list.html'
 
     def get_queryset(self):
         user = self.request.user
+        active = OptionWheel.objects.filter(user=user, is_active=True)
+        active_sorted = sorted(active, key=lambda x: x.get_open_date(), reverse=True)
+        completed = OptionWheel.objects.filter(user=user, is_active=False)
+        completed_sorted = sorted(completed, key=lambda x: x.get_open_date(), reverse=True)
         queryset = {
-            'active_wheels': OptionWheel.objects.filter(user=user, is_active=True), 
-            'completed_wheels': OptionWheel.objects.filter(user=user, is_active=False),
+            'active_wheels': active_sorted, 
+            'completed_wheels': completed_sorted,
         }
         return queryset
 
-class OptionWheelDetailView(generic.DetailView):
+class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
     model = OptionWheel
     context_object_name = 'wheel'
 
@@ -112,17 +148,23 @@ class OptionWheelDetailView(generic.DetailView):
         context['cost_basis'] = cost_basis
         return context
 
+@login_required
 def create_wheel(request):
     user = request.user
     option_wheel = OptionWheel(user=user, is_active=True)
     option_wheel.save()
-    return redirect('wheel-detail', pk=option_wheel.pk)
+    return redirect('purchase-create', wheel_id=option_wheel.pk)
 
-class OptionWheelDelete(generic.edit.DeleteView):
+class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionWheel
     success_url = reverse_lazy('wheels')
 
-class OptionPurchaseCreate(generic.edit.CreateView):
+
+# OptionPurchase views
+class OptionPurchaseDetailView(LoginRequiredMixin, generic.DetailView):
+    model = OptionPurchase
+
+class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
     model = OptionPurchase
     form_class = OptionPurchaseForm
 
@@ -146,13 +188,11 @@ class OptionPurchaseCreate(generic.edit.CreateView):
         wheel_id = self.kwargs.get('wheel_id')
         return reverse('wheel-detail', args=[str(wheel_id)])
 
-
-class OptionPurchaseUpdate(generic.edit.UpdateView):
+class OptionPurchaseUpdate(LoginRequiredMixin, generic.edit.UpdateView):
     model = OptionPurchase
     form_class = OptionPurchaseForm
 
-
-class OptionPurchaseDelete(generic.edit.DeleteView):
+class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionPurchase
 
     def get_success_url(self):

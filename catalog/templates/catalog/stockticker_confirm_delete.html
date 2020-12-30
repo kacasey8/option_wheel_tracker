@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+
+<h1>Delete Ticker</h1>
+
+<p>Are you sure you want to delete the ticker: {{ stockticker }}?</p>
+
+<p class="text-danger">Note: All options for this ticker will also be deleted.</p>
+
+
+<form action="" method="POST">
+  {% csrf_token %}
+  <input type="submit" value="Yes, delete.">
+</form>
+
+{% endblock %}

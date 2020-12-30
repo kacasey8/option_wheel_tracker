@@ -3,9 +3,14 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('signup/', views.signup, name='signup'),
+    path('signup_complete/', views.signup_complete, name='signup-complete'),
     path('tickers/', views.StockTickerListView.as_view(), name='tickers'),
+    path('tickers/<int:pk>', views.StockTickerDetailView.as_view(), name='ticker-detail'),
+    path('tickers/create/', views.StockTickerCreate.as_view(), name='ticker-create'),
+    path('tickers/<int:pk>/update/', views.StockTickerUpdate.as_view(), name='ticker-update'),
+    path('tickers/<int:pk>/delete/', views.StockTickerDelete.as_view(), name='ticker-delete'),
     path('wheels/', views.OptionWheelListView.as_view(), name='wheels'),
-    path('tickers/<int:pk>', views.StockTickerDetailView.as_view(), name='stockticker-detail'),
     path('wheels/<int:pk>', views.OptionWheelDetailView.as_view(), name='wheel-detail'),
     path('wheels/<int:wheel_id>/purchase/<int:pk>', views.OptionPurchaseDetailView.as_view(), name='purchase-detail-view'),
     path('wheels/<int:wheel_id>/purchase/create/', views.OptionPurchaseCreate.as_view(), name='purchase-create'),
