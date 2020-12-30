@@ -95,7 +95,7 @@ def create_wheel(request):
     user = request.user
     option_wheel = OptionWheel(user=user, is_active=True)
     option_wheel.save()
-    return redirect('wheel-detail', pk=option_wheel.pk)
+    return redirect('purchase-create', wheel_id=option_wheel.pk)
 
 class OptionWheelDelete(generic.edit.DeleteView):
     model = OptionWheel
