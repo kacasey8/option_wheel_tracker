@@ -1,17 +1,42 @@
 {% extends "base_generic.html" %}
 
+{% load filter_tags %}
+
 {% block content %}
   <h1>Stock Ticker: {{ stockticker.name }}</h1>
   <a href="{% url 'tickers' %}">All Tickers</a>
   <p><strong>Recommendation:</strong> {{ stockticker.recommendation }}</p>
   <p><strong>Current Price:</strong> {{ current_price | floatformat:2 }}</p>
-  <ul>
-    {% for put_stat in put_stats %}
-      <li>
-        {{ put_stat }}
-      </li>
-    {% endfor %}
-  </ul>
+  <label for="min_itm">Minimum Odds In The Money %</label>
+  <input type="text" id="min_itm" name="min_itm">
+  <table class="table" id="option_detail_table">
+    <thead>
+      <tr>
+        <th>Strike</th>
+        <th>Calendar Days To Expiration</th>
+        <th tooltip="hello">Odds In The Money %</th>
+        <th>Annualized Rate Of Return</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for put_stat in put_stats %}
+        <tr>
+          <td>
+            {{ put_stat.strike }}
+          </td>
+          <td>
+            {{ put_stat.days_to_expiry }} ({{put_stat.expiration_date}})
+          </td>
+          <td>
+            {{ put_stat.decimal_odds_in_the_money_implied | percentage }}
+          </td>
+          <td>
+            {{ put_stat.annualized_rate_of_return_decimal | percentage }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
   <a type="button" class="btn btn-primary" href="{% url 'ticker-update' pk=stockticker.pk %}">Edit</a>
   <a type="button" class="btn btn-danger" href="{% url 'ticker-delete' pk=stockticker.pk %}" variant="danger">Delete</a>

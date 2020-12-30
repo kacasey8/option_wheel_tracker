@@ -14,10 +14,46 @@ import yfinance
 import mibian
 import numpy
 
+# see https://ycharts.com/indicators/10_year_treasury_rate#:~:text=10%20Year%20Treasury%20Rate%20is%20at%200.94%25%2C%20compared%20to%200.94,long%20term%20average%20of%204.39%25.
+INTEREST_RATE = 1
+BUSINESS_DAYS_IN_YEAR = 252
+
 def _get_next_friday():
     now = timezone.now()
     return now + timedelta((3 - now.weekday()) % 7 + 1)
 
+def _compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date):
+    put_implied_volatility_calculator = mibian.BS([current_price, interesting_put.strike, INTEREST_RATE, days_to_expiry], putPrice=interesting_put.lastPrice)
+    # kinda silly, we need to construct another object to extract delta for a computation based on real put price
+    implied_volatility = put_implied_volatility_calculator.impliedVolatility # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low
+    put_with_implied_volatility = mibian.BS([current_price, interesting_put.strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
+    max_profit_decimal = interesting_put.lastPrice / interesting_put.strike
+    stats = {
+        "strike": interesting_put.strike,
+        "price": interesting_put.lastPrice,
+        "expiration_date": expiration_date,
+        "days_to_expiry": days_to_expiry,
+        # https://www.macroption.com/delta-calls-puts-probability-expiring-itm/ "Option’s delta as probability proxy"
+        "max_profit_decimal": max_profit_decimal,
+        "decimal_odds_in_the_money_implied": 1 + put_with_implied_volatility.putDelta,
+        "annualized_rate_of_return_decimal": (1 + max_profit_decimal) ** ((1 + put_with_implied_volatility.putDelta) * BUSINESS_DAYS_IN_YEAR / days_to_expiry * (1 + put_with_implied_volatility.putDelta))
+    }
+
+    if False:
+        # these extra computations are interesting, but take extra processing time
+        put = mibian.BS([current_price, interesting_put.strike, INTEREST_RATE, days_to_expiry], volatility=historical_volatility)
+        put_with_premium = mibian.BS([current_price, interesting_put.strike - interesting_put.lastPrice, INTEREST_RATE, days_to_expiry], volatility=historical_volatility)
+        put_with_premium_with_implied_volatility = mibian.BS([current_price, interesting_put.strike - interesting_put.lastPrice, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
+        stats.update({
+            "historical_expected_put_price": put.putPrice,
+            "actual_put_price": interesting_put.lastPrice,
+            "decimal_odds_profitable_historical": 1 + put_with_premium.putDelta,
+            "decimal_odds_profitable_implied": 1 + put_with_premium_with_implied_volatility.putDelta,
+            "decimal_odds_in_the_money_historical": 1 + put.putDelta,
+        })
+
+
+    return stats
 
 
 def index(request):
@@ -60,37 +96,19 @@ class StockTickerDetailView(generic.DetailView):
         historical_volatility = logarithmic_returns.std() * numpy.sqrt(252) * 100
         current_price = yahoo_ticker_history.tail(1)['Close'].iloc[0]
         context['current_price'] = current_price
-        next_option_day = yahoo_ticker.options[0]
-        puts = yahoo_ticker.option_chain(next_option_day).puts
-        interesting_index = puts[puts['strike'].gt(current_price)].index[0]
-        # interesting defined as the 3 highest ITM puts and 3 lowest OTM puts, aka 6 closest strikes to current price
-        interesting_puts = puts[max(interesting_index - 3, 0):min(interesting_index + 3, puts.shape[0])]
-        next_option_day_as_date_object = datetime.strptime(next_option_day, '%Y-%m-%d').date()
-        days_to_expiry = (next_option_day_as_date_object - datetime.now().date()).days
         put_stats = []
-        for index, interesting_put in interesting_puts.iterrows():
-            interest_rate = 1 # see https://ycharts.com/indicators/10_year_treasury_rate#:~:text=10%20Year%20Treasury%20Rate%20is%20at%200.94%25%2C%20compared%20to%200.94,long%20term%20average%20of%204.39%25.
-            put_implied_volatility_calculator = mibian.BS([current_price, interesting_put.strike, interest_rate, days_to_expiry], putPrice=interesting_put.lastPrice)
-            # kinda silly, we need to construct another object to extract delta for a computation based on real put price
-            implied_volatility = put_implied_volatility_calculator.impliedVolatility # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low
-            put_with_implied_volatility = mibian.BS([current_price, interesting_put.strike, interest_rate, days_to_expiry], volatility=implied_volatility)
-            put = mibian.BS([current_price, interesting_put.strike, interest_rate, days_to_expiry], volatility=historical_volatility)
-            put_with_premium = mibian.BS([current_price, interesting_put.strike - interesting_put.lastPrice, interest_rate, days_to_expiry], volatility=historical_volatility)
-            put_with_premium_with_implied_volatility = mibian.BS([current_price, interesting_put.strike - interesting_put.lastPrice, interest_rate, days_to_expiry], volatility=implied_volatility)
-            put_stats.append({
-                "strike": interesting_put.strike,
-                "price": interesting_put.lastPrice,
-                "historical_expected_put_price": put.putPrice,
-                "actual_put_price": interesting_put.lastPrice,
-                # https://www.macroption.com/delta-calls-puts-probability-expiring-itm/ "Option’s delta as probability proxy"
-                "decimal_odds_in_the_money_historical": 1 + put.putDelta,
-                "decimal_odds_profitable_historical": 1 + put_with_premium.putDelta,
-                "decimal_odds_in_the_money_implied": 1 + put_with_implied_volatility.putDelta,
-                "decimal_odds_profitable_implied": 1 + put_with_premium_with_implied_volatility.putDelta,
-                "max_profit_decimal": interesting_put.lastPrice / interesting_put.strike
-
-            })
-        context['put_stats'] = put_stats
+        option_days = [yahoo_ticker.options[0], yahoo_ticker.options[1]]
+        for option_day in option_days:
+            puts = yahoo_ticker.option_chain(option_day).puts
+            interesting_index = puts[puts['strike'].gt(current_price)].index[0]
+            # interesting defined as the 3 highest OTM puts (price is below strike price)
+            # For our strategies it never really seems great to do a ITM put
+            interesting_puts = puts[max(interesting_index - 3, 0):interesting_index]
+            option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
+            days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object)
+            for index, interesting_put in interesting_puts.iterrows():
+                put_stats.append(_compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date=option_day))
+        context['put_stats'] = sorted(put_stats, key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
         return context
 
 
