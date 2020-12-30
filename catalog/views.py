@@ -34,6 +34,8 @@ def signup(request):
 def signup_complete(request):
     return render(request, 'signup_complete.html')
 
+
+# StockTicker views
 class StockTickerListView(generic.ListView):
     model = StockTicker
  
@@ -45,21 +47,17 @@ class StockTickerCreate(generic.edit.CreateView):
     form_class = StockTickerForm
     success_url = reverse_lazy('tickers')
 
-
 class StockTickerUpdate(generic.edit.UpdateView):
     model = StockTicker
     form_class = StockTickerForm
     success_url = reverse_lazy('tickers')
 
-
 class StockTickerDelete(generic.edit.DeleteView):
     model = StockTicker
     success_url = reverse_lazy('tickers')
 
- 
-class OptionPurchaseDetailView(generic.DetailView):
-    model = OptionPurchase
 
+# OptionWheel views
 class OptionWheelListView(LoginRequiredMixin, generic.ListView):
     model = OptionWheel
     context_object_name = 'wheels'
@@ -97,9 +95,14 @@ def create_wheel(request):
     option_wheel.save()
     return redirect('purchase-create', wheel_id=option_wheel.pk)
 
-class OptionWheelDelete(generic.edit.DeleteView):
+class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionWheel
     success_url = reverse_lazy('wheels')
+
+
+# OptionPurchase views
+class OptionPurchaseDetailView(LoginRequiredMixin, generic.DetailView):
+    model = OptionPurchase
 
 class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
     model = OptionPurchase
@@ -126,13 +129,11 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         wheel_id = self.kwargs.get('wheel_id')
         return reverse('wheel-detail', args=[str(wheel_id)])
 
-
-class OptionPurchaseUpdate(generic.edit.UpdateView):
+class OptionPurchaseUpdate(LoginRequiredMixin, generic.edit.UpdateView):
     model = OptionPurchase
     form_class = OptionPurchaseForm
 
-
-class OptionPurchaseDelete(generic.edit.DeleteView):
+class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionPurchase
 
     def get_success_url(self):
