@@ -99,8 +99,8 @@ class StockTickerDetailView(generic.DetailView):
         current_price = yahoo_ticker_history.tail(1)['Close'].iloc[0]
         context['current_price'] = current_price
         put_stats = []
-        # only look at the 5 closest option days, so about a month for weekly options
-        option_days = yahoo_ticker.options[:5]
+        # only look at the 10 closest option days, so about 2 months weekly options
+        option_days = yahoo_ticker.options[:10]
         for option_day in option_days:
             puts = yahoo_ticker.option_chain(option_day).puts
             interesting_index = puts[puts['strike'].gt(current_price)].index[0]
@@ -108,7 +108,8 @@ class StockTickerDetailView(generic.DetailView):
             # For our strategies it never really seems great to do a ITM put
             interesting_puts = puts[max(interesting_index - 10, 0):interesting_index]
             option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
-            days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object)
+            # add one to business days since it includes the current day too
+            days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
             for index, interesting_put in interesting_puts.iterrows():
                 put_stats.append(_compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date=option_day))
         context['put_stats'] = sorted(put_stats, key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)

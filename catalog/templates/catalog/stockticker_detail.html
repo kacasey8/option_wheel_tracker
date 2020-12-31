@@ -34,7 +34,7 @@
           <td>
             {{ put_stat.price }}
           </td>
-          <td>
+          <td data-order={{ put_stat.days_to_expiry }}>
             {{ put_stat.days_to_expiry }} ({{put_stat.expiration_date}})
           </td>
           <td>
@@ -44,7 +44,7 @@
             {{ put_stat.max_profit_decimal | percentage }}
           </td>
           <td>
-            {{ put_stat.annualized_rate_of_return_decimal | percentage }}
+            {{ put_stat.annualized_rate_of_return_decimal | floatformat:2 }}x
           </td>
         </tr>
       {% endfor %}
