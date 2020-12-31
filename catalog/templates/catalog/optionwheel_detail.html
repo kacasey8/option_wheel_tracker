@@ -32,13 +32,9 @@
     {% endif %}
   {% else %}
     <i> Complete.</i>
-    <p>
-      <strong>Profit:</strong> {{ wheel.total_profit }}
-      <br>
-      <strong>Days Active:</strong> {{ wheel.total_days_active }}
-      <br>
-      <strong>Collatoral:</strong> {{ wheel.collatoral }}
-    </p>
+    <div><strong>Total Profit:</strong> {{ wheel.total_profit }}</div>
+    <div><strong>Total Days Active:</strong> {{ wheel.total_days_active }}</div>
+    <div><strong>Collatoral:</strong> {{ wheel.collatoral }}</div>
     <br>
     <a type="button" class="btn btn-warning" href="{% url 'wheel-reactivate' pk=wheel.pk %}">Reactivate Wheel</a>
   {% endif %}
