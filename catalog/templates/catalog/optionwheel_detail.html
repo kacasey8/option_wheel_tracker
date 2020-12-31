@@ -14,23 +14,40 @@
   <br>
   <br>
 
+  <p>
+    <strong>Current Price:</strong> ${{ current_price | floatformat:2 }}
+  </p>
+
+  {% if expires %}
+    <p><i class="text-danger"> Set to expire on <strong>{{ expires | date:"m/d"}}</strong>. Check back then.</i></p>
+  {% endif %}
+
   <strong>Status:</strong>
   {% if wheel.is_active %}
     {% if purchases %}
-      {% if expires %}
-        <i class="text-danger"> Set to expire on <strong>{{ expires | date:"m/d"}}</strong>. Check back then. </i>
-      {% else %}
-        <i> Expiration date reached.</i>
-        <br>
-        <br>
-        <h6>Possible Actions:</h6>
-        <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">If Assigned - Add Call</a>
-        <a type="button" class="btn btn-success" href="{% url 'wheel-complete' pk=wheel.pk %}">If Expired - Complete Wheel</a>
+      {% if purchases.0.call_or_put == 'P' and current_price < purchases.0.strike %}
+        <span class="badge badge-pill badge-primary">Put Pending Assignment</span>
+      {% elif purchases.0.call_or_put == 'P' %}
+        <span class="badge badge-pill badge-success">Put Pending Expiration</span>
+      {% elif current_price < purchases.0.strike %}
+        <span class="badge badge-pill badge-primary">Call Pending Expiration</span>
+      {% else%}
+        <span class="badge badge-pill badge-success">Call Pending Assignment</span>
       {% endif %}
+      <p>
+        <div>Possible Actions:</div>
+        <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">
+          {% if purchases.0.call_or_put == 'P' %} Put Assigned {% else %} Call Expired {% endif %} - Add Call
+        </a>
+        <a type="button" class="btn btn-success" href="{% url 'wheel-complete' pk=wheel.pk %}">
+          {% if purchases.0.call_or_put == 'P' %} Put Expired {% else %} Call Assigned {% endif %} - Complete Wheel
+        </a>
+      <p>
     {% else %}
       <i> No purchases yet.</i>
-      <br>
-      <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">Add First Purchase</a>
+      <div>
+        <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">Add First Purchase</a>
+      <div>
     {% endif %}
   {% else %}
     <i> Complete.</i>
@@ -44,8 +61,9 @@
     <div>
       <strong>Collatoral:</strong> {{ wheel.collatoral }}
     </div>
-    <br>
-    <a type="button" class="btn btn-warning" href="{% url 'wheel-reactivate' pk=wheel.pk %}">Reactivate Wheel</a>
+    <div>
+      <a type="button" class="btn btn-warning" href="{% url 'wheel-reactivate' pk=wheel.pk %}">Reactivate Wheel</a>
+    </div>
   {% endif %}
 
   <br>

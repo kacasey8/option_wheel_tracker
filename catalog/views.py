@@ -22,6 +22,13 @@ def _get_next_friday():
     now = timezone.now()
     return now + timedelta((3 - now.weekday()) % 7 + 1)
 
+def _get_current_price(stockticker_name):
+    yahoo_ticker = yfinance.Ticker(stockticker_name)
+    yahoo_ticker_history = yahoo_ticker.history(period="1d")
+    if yahoo_ticker_history.empty:
+        return None
+    return yahoo_ticker_history.tail(1)['Close'].iloc[0]
+
 def _compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date):
     put_implied_volatility_calculator = mibian.BS([current_price, interesting_put.strike, INTEREST_RATE, days_to_expiry], putPrice=interesting_put.lastPrice)
     # kinda silly, we need to construct another object to extract delta for a computation based on real put price
@@ -93,7 +100,7 @@ class StockTickerDetailView(generic.DetailView):
         yahoo_ticker_history = yahoo_ticker.history(period="150d")
         # https://blog.quantinsti.com/volatility-and-measures-of-risk-adjusted-return-based-on-volatility/
         logarithmic_returns = numpy.log(yahoo_ticker_history['Close'] / yahoo_ticker_history['Close'].shift(1))
-        historical_volatility = logarithmic_returns.std() * numpy.sqrt(252) * 100
+        historical_volatility = logarithmic_returns.std() * numpy.sqrt(BUSINESS_DAYS_IN_YEAR) * 100
         if yahoo_ticker_history.empty:
             return context
         current_price = yahoo_ticker_history.tail(1)['Close'].iloc[0]
@@ -172,6 +179,9 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
         context['purchases'] = purchases
         context['cost_basis'] = cost_basis
         context['expires'] = expires
+
+        current_price = _get_current_price(option_wheel.stock_ticker.name)
+        context['current_price'] = current_price
         return context
 
 
@@ -238,6 +248,12 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
     def get_initial(self):
         user = self.request.user
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
+
+        price_at_date = None
+        current_price = _get_current_price(option_wheel.stock_ticker.name)
+        if current_price:
+            price_at_date = round(current_price, 2)
+
         first_strike = None
         call_or_put = 'P'
         first_option_purchase = option_wheel.get_first_option_purchase()
@@ -252,6 +268,7 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
             'expiration_date': _get_next_friday(),
             'call_or_put': call_or_put,
             'strike': first_strike,
+            'price_at_date': price_at_date
         }
 
     def get_context_data(self, **kwargs):
