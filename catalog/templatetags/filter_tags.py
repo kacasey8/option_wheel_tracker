@@ -4,4 +4,4 @@ register = template.Library()
 
 @register.filter
 def percentage(value):
-    return '{:.1%}'.format(value)
+    return '{:.2%}'.format(value)
