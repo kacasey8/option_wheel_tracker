@@ -17,6 +17,7 @@
   <table class="table" id="option_detail_table">
     <thead>
       <tr>
+        <th>Ticker</th>
         <th>Strike</th>
         <th>Premium</th>
         <th>Calendar Days To Expiration</th>
@@ -28,6 +29,9 @@
     <tbody>
       {% for put_stat in put_stats %}
         <tr>
+          <td>
+            {{ put_stat.ticker }}
+          </td>
           <td>
             {{ put_stat.strike }}
           </td>

@@ -135,6 +135,7 @@ class StockTickerDetailView(generic.DetailView):
             for index, interesting_put in interesting_puts.iterrows():
                 put_stat = _compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date=option_day)
                 if put_stat is not None:
+                    put_stat.update({"ticker": self.object.name})
                     put_stats.append(put_stat)
         context['put_stats'] = sorted(put_stats, key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
         return context
