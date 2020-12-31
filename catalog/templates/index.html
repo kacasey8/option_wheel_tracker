@@ -1,9 +1,23 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <h1>Option Wheel</h1>
-  <p>The following stock recommendations to look at:</p>
-  <ul>
-    <li><strong>Stock Tickers:</strong> {{ stock_tickers }}</li>
-  </ul>
+  <h1>Option Wheel Tracker</h1>
+  <h2>Welcome to the Option Wheel Tracker</h2>
+  <div>
+    This site is used for both
+    <ul>
+        <li>Suggesting which options to sell</li>
+        <li>Keeping track of profits from selling options</li>
+    </ul>
+  </div>
+  <div>
+    <a href="https://www.youtube.com/watch?v=SD7sw0bf1ms">This</a> youtube video
+    gives a good introduction to how options works
+  </div>
+  <div>
+    <a href="https://www.reddit.com/r/options/comments/a36k4j/the_wheel_aka_triple_income_strategy_explained/">This</a> article gives an explanation for how the wheel works
+  </div>
+  <div>
+    The general strategy is that we will be selling puts, this results in free premium money, and either we acquire the stock if the stock goes down, or we just keep free premium money and repeat. If we acquire the stock, then we sell calls to try to get rid of our stock.
+  </div>
 {% endblock %}
