@@ -137,15 +137,19 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(OptionWheelDetailView, self).get_context_data(**kwargs)
-        user = self.request.user
-        option_wheel_id = self.kwargs.get('pk')
-        purchases = OptionPurchase.objects.filter(user=user, option_wheel=option_wheel_id).order_by('-expiration_date')
+        option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('pk'))
+        purchases = option_wheel.get_all_option_purchases()
         revenue = sum(purchase.premium for purchase in purchases)
         cost_basis = 'N/A'
+        expires = None
         if purchases:
-            cost_basis = purchases[0].strike - revenue
+            last_purchase = purchases[0]
+            cost_basis = last_purchase.strike - revenue
+            if last_purchase.expiration_date > timezone.now().date():
+                expires = last_purchase.expiration_date
         context['purchases'] = purchases
         context['cost_basis'] = cost_basis
+        context['expires'] = expires
         return context
 
 @login_required
@@ -154,6 +158,35 @@ def create_wheel(request):
     option_wheel = OptionWheel(user=user, is_active=True)
     option_wheel.save()
     return redirect('purchase-create', wheel_id=option_wheel.pk)
+
+@login_required
+def complete_wheel(request, pk):
+    option_wheel = OptionWheel.objects.get(pk=pk)
+    purchases = option_wheel.get_all_option_purchases()
+
+    option_wheel.is_active = False
+    if purchases:
+        last_purchase = purchases[0]
+        first_purchase = purchases[len(purchases) - 1]
+
+        premiums = sum(purchase.premium for purchase in purchases)
+        profit = premiums + last_purchase.strike - first_purchase.strike
+
+        days = (last_purchase.expiration_date - first_purchase.purchase_date.date()).days
+        max_collatoral = max(purchase.strike for purchase in purchases)
+
+        option_wheel.total_profit = profit
+        option_wheel.total_days_active = days
+        option_wheel.collatoral = max_collatoral
+    option_wheel.save()
+    return redirect('wheel-detail', pk=pk)
+
+@login_required
+def reactivate_wheel(request, pk):
+    option_wheel = OptionWheel.objects.get(pk=pk)
+    option_wheel.is_active = True
+    option_wheel.save()
+    return redirect('wheel-detail', pk=pk)
 
 class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionWheel
@@ -172,9 +205,13 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         user = self.request.user
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
         stock_ticker = None
+        first_strike = None
+        call_or_put = 'P'
         first_option_purchase = option_wheel.get_first_option_purchase()
         if first_option_purchase:
             stock_ticker = first_option_purchase.stock_ticker
+            call_or_put = 'C'
+            first_strike = first_option_purchase.strike
         now = timezone.now()
         return {
             'user': user, 
@@ -182,6 +219,8 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
             'purchase_date': now,
             'expiration_date': _get_next_friday(),
             'stock_ticker': stock_ticker,
+            'call_or_put': call_or_put,
+            'strike': first_strike,
         }
 
     def get_success_url(self):
