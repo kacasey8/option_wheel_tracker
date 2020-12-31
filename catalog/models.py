@@ -29,10 +29,6 @@ class StockTicker(models.Model):
 
 class OptionPurchase(models.Model):
     """Represents an option sold on a specific day"""
-    stock_ticker = models.ForeignKey(
-        'StockTicker',
-        on_delete=models.CASCADE,
-    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -58,8 +54,7 @@ class OptionPurchase(models.Model):
     )
 
     def __str__(self):
-        # TODO
-        return f"${self.strike} {self.call_or_put} {str(self.stock_ticker)} (exp. {self.expiration_date.strftime('%m/%d')})"
+        return f"${self.strike} {self.call_or_put} {str(self.option_wheel.stock_ticker)} (exp. {self.expiration_date.strftime('%m/%d')})"
 
     def get_absolute_url(self):
         return reverse('purchase-detail-view', args=[str(self.option_wheel.pk), str(self.id)])
@@ -70,6 +65,11 @@ class OptionWheel(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
     )
+    stock_ticker = models.ForeignKey(
+        'StockTicker',
+        on_delete=models.CASCADE,
+    )
+    quantity = models.IntegerField(default=1)
     is_active = models.BooleanField()
     total_profit = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
     total_days_active = models.IntegerField(default=None, null=True)
@@ -89,13 +89,13 @@ class OptionWheel(models.Model):
 
     def __str__(self):
         first_option_purchase = self.get_first_option_purchase()
+        quantity_str = f"({self.quantity}X) " if self.quantity > 1 else ""
         if first_option_purchase is None:
-            return "No options associated with this wheel"
+            return f"{quantity_str}{str(self.stock_ticker)}"
         strike = first_option_purchase.strike
         call_or_put = first_option_purchase.call_or_put
-        ticker = first_option_purchase.stock_ticker
         open = first_option_purchase.purchase_date.strftime('%m/%d')
-        return f"${strike} {call_or_put} {str(ticker)} (opened {open})"
+        return f"{quantity_str}${strike} {call_or_put} {str(self.stock_ticker)} (opened {open})"
 
     def get_absolute_url(self):
         return reverse('wheel-detail', args=[str(self.id)])

@@ -3,7 +3,8 @@
 {% block content %}
   <h1>Option Wheel: {{ wheel }}</h1>
   <p>
-    <strong>Cost Basis:</strong> {{ cost_basis }}
+    <strong>Cost Basis:</strong> ${{ cost_basis }}
+    <strong>Quantity:</strong> {{ wheel.quantity }}
     <strong>Active:</strong> {{ wheel.is_active }}
   </p>
 
@@ -51,17 +52,13 @@
         <a href="{{ purchase.get_absolute_url }}">{{ purchase }}</a>
         Purchased on {{ purchase.purchase_date | date:"m/d" }} for
       <strong>${{ purchase.premium }}</strong> premium
-      <i>({{ purchase.stock_ticker }} at ${{ purchase.price_at_date }})</i>
+      <i>({{ wheel.stock_ticker }} at ${{ purchase.price_at_date }})</i>
       </li>
     {% endfor %}
   </ul>
 
   <br>
-  <a type="button" class="btn btn-danger" href="{% url 'wheel-delete' pk=wheel.pk %}" variant="danger">Delete Wheel</a>
-  <br>
-
-  TODO show Calls / puts on this wheel
-  <br>
-  TODO allow editing status of most recent wheel as expired or assigned
+  <a type="button" class="btn btn-primary" href="{% url 'wheel-update' pk=wheel.pk %}">Edit</a>
+  <a type="button" class="btn btn-danger" href="{% url 'wheel-delete' pk=wheel.pk %}" variant="danger">Delete</a>
 
 {% endblock %}

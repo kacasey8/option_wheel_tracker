@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from catalog.models import OptionPurchase, StockTicker
+from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
 import datetime
 
@@ -19,6 +19,15 @@ class StockTickerForm(forms.ModelForm):
     class Meta:
         model = StockTicker
         fields = '__all__'
+
+class OptionWheelForm(forms.ModelForm):
+    class Meta:
+        model = OptionWheel
+        fields = ('user', 'stock_ticker', 'quantity', 'is_active')
+        widgets = {
+            'user': forms.widgets.HiddenInput(),
+            'is_active': forms.widgets.HiddenInput()
+        }
 
 class OptionPurchaseForm(forms.ModelForm):
     class Meta:

@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import generic
 
-from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm
+from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm
 from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
 from datetime import datetime, timedelta, date
@@ -173,12 +173,6 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
         context['expires'] = expires
         return context
 
-@login_required
-def create_wheel(request):
-    user = request.user
-    option_wheel = OptionWheel(user=user, is_active=True)
-    option_wheel.save()
-    return redirect('purchase-create', wheel_id=option_wheel.pk)
 
 @login_required
 def complete_wheel(request, pk):
@@ -209,6 +203,23 @@ def reactivate_wheel(request, pk):
     option_wheel.save()
     return redirect('wheel-detail', pk=pk)
 
+class OptionWheelCreate(generic.edit.CreateView):
+    model = OptionWheel
+    form_class = OptionWheelForm
+    success_url = reverse_lazy('wheels')
+
+    def get_initial(self):
+        user = self.request.user
+        return {
+            'user': user, 
+            'is_active': True
+        }
+
+class OptionWheelUpdate(generic.edit.UpdateView):
+    model = OptionWheel
+    form_class = OptionWheelForm
+    success_url = reverse_lazy('wheels')
+
 class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionWheel
     success_url = reverse_lazy('wheels')
@@ -225,12 +236,10 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
     def get_initial(self):
         user = self.request.user
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
-        stock_ticker = None
         first_strike = None
         call_or_put = 'P'
         first_option_purchase = option_wheel.get_first_option_purchase()
         if first_option_purchase:
-            stock_ticker = first_option_purchase.stock_ticker
             call_or_put = 'C'
             first_strike = first_option_purchase.strike
         now = timezone.now()
@@ -239,10 +248,15 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
             'option_wheel': option_wheel,
             'purchase_date': now,
             'expiration_date': _get_next_friday(),
-            'stock_ticker': stock_ticker,
             'call_or_put': call_or_put,
             'strike': first_strike,
         }
+
+    def get_context_data(self, **kwargs):
+        context = super(OptionPurchaseCreate, self).get_context_data(**kwargs)
+        option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
+        context['option_wheel'] = option_wheel
+        return context
 
     def get_success_url(self):
         wheel_id = self.kwargs.get('wheel_id')
