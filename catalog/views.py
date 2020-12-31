@@ -31,6 +31,9 @@ def _get_current_price(stockticker_name):
 
 def _compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date):
     strike, last_price, bid, ask = [interesting_put.strike, interesting_put.lastPrice, interesting_put.bid, interesting_put.ask]
+    if interesting_put.volume < 10:
+        # These are probably too low volume to be legit. Yahoo finance will show wrong prices
+        return None
     effective_price = last_price
     if (bid == 0 and ask == 0) == False:
         # bid and ask will be 0 during off hours, so use last_price as an estimate.
