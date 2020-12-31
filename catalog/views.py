@@ -34,8 +34,10 @@ def _compute_put_stat(current_price, interesting_put, days_to_expiry, historical
     effective_price = last_price
     if (bid == 0 and ask == 0) == False:
         # bid and ask will be 0 during off hours, so use last_price as an estimate.
-        # During trading hours we assume we'll get a price halfway between the bid and the ask
-        effective_price = round((bid + ask) / 2, 3)
+        # During trading hours we assume we'll assuming worse case that we can only get it for bid price
+        effective_price = bid
+    if effective_price == 0:
+        return None
     put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real put price
     implied_volatility = put_implied_volatility_calculator.impliedVolatility # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low
@@ -127,7 +129,9 @@ class StockTickerDetailView(generic.DetailView):
             # add one to business days since it includes the current day too
             days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
             for index, interesting_put in interesting_puts.iterrows():
-                put_stats.append(_compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date=option_day))
+                put_stat = _compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date=option_day)
+                if put_stat is not None:
+                    put_stats.append(put_stat)
         context['put_stats'] = sorted(put_stats, key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
         return context
 
