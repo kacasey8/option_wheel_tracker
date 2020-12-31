@@ -236,7 +236,6 @@ def reactivate_wheel(request, pk):
 class OptionWheelCreate(generic.edit.CreateView):
     model = OptionWheel
     form_class = OptionWheelForm
-    success_url = reverse_lazy('wheels')
 
     def get_initial(self):
         user = self.request.user
@@ -244,6 +243,9 @@ class OptionWheelCreate(generic.edit.CreateView):
             'user': user, 
             'is_active': True
         }
+
+    def get_success_url(self):
+        return reverse('purchase-create', args=[str(self.object.id)])
 
 class OptionWheelUpdate(generic.edit.UpdateView):
     model = OptionWheel
