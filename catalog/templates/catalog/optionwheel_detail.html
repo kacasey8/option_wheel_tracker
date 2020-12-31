@@ -1,5 +1,7 @@
 {% extends "base_generic.html" %}
 
+{% load filter_tags %}
+
 {% block content %}
   <h1>Option Wheel: {{ wheel }}</h1>
   <p>
@@ -32,9 +34,16 @@
     {% endif %}
   {% else %}
     <i> Complete.</i>
-    <div><strong>Total Profit:</strong> {{ wheel.total_profit }}</div>
-    <div><strong>Total Days Active:</strong> {{ wheel.total_days_active }}</div>
-    <div><strong>Collatoral:</strong> {{ wheel.collatoral }}</div>
+    <div>
+      <strong>Total Profit:</strong> ${{ wheel.total_profit }}
+      {% if wheel.quantity > 1 %} (${{ wheel.total_profit | divide:wheel.quantity }}/contract) {% endif %}
+    </div>
+    <div>
+      <strong>Total Days Active:</strong> {{ wheel.total_days_active }}
+    </div>
+    <div>
+      <strong>Collatoral:</strong> {{ wheel.collatoral }}
+    </div>
     <br>
     <a type="button" class="btn btn-warning" href="{% url 'wheel-reactivate' pk=wheel.pk %}">Reactivate Wheel</a>
   {% endif %}
