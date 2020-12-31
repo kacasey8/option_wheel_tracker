@@ -7,6 +7,10 @@
   <br>
 
   {% if stockticker_list %}
+  <div>
+    <a href="{% url 'global-put-comparison' %}">Global Put Options</a> (will take time to load)
+  </div>
+  <br>
   <ul>
     {% for stockticker in stockticker_list %}
       <li>

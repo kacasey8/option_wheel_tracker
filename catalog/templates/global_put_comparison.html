@@ -1,0 +1,8 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Global Put Options</h1>
+  <div>Shows the put options on every stock in the database</div>
+  <a href="{% url 'tickers' %}">Back to stock list</a>
+  {% include '_option_put_table.html' %}
+{% endblock %}
