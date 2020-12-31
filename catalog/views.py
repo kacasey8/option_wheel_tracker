@@ -110,7 +110,10 @@ class StockTickerDetailView(generic.DetailView):
         option_days = yahoo_ticker.options[:10]
         for option_day in option_days:
             puts = yahoo_ticker.option_chain(option_day).puts
-            interesting_index = puts[puts['strike'].gt(current_price)].index[0]
+            interesting_indicies = puts[puts['strike'].gt(current_price)].index
+            if len(interesting_indicies) == 0:
+                continue
+            interesting_index = interesting_indicies[0]
             # interesting defined as the 3 highest OTM puts (price is below strike price)
             # For our strategies it never really seems great to do a ITM put
             interesting_puts = puts[max(interesting_index - 10, 0):interesting_index]
