@@ -94,6 +94,8 @@ class StockTickerDetailView(generic.DetailView):
         # https://blog.quantinsti.com/volatility-and-measures-of-risk-adjusted-return-based-on-volatility/
         logarithmic_returns = numpy.log(yahoo_ticker_history['Close'] / yahoo_ticker_history['Close'].shift(1))
         historical_volatility = logarithmic_returns.std() * numpy.sqrt(252) * 100
+        if yahoo_ticker_history.empty:
+            return context
         current_price = yahoo_ticker_history.tail(1)['Close'].iloc[0]
         context['current_price'] = current_price
         put_stats = []
