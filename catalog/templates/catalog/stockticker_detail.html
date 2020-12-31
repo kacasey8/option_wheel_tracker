@@ -7,6 +7,11 @@
   <a href="{% url 'tickers' %}">All Tickers</a>
   <p><strong>Recommendation:</strong> {{ stockticker.recommendation }}</p>
   <p><strong>Current Price:</strong> {{ current_price | floatformat:2 }}</p>
+  <a type="button" class="btn btn-primary" href="{% url 'ticker-update' pk=stockticker.pk %}">Edit</a>
+  <a type="button" class="btn btn-danger" href="{% url 'ticker-delete' pk=stockticker.pk %}" variant="danger">Delete</a>
+
+  <h2 style="margin-top: 52px">Option Choices</h2>
+  <p>Typically you want to choose options that have a higher than 70% chance of being in the money, since then you only have a 30% chance of actually acquiring the stock. Beyond that maximumizing the annualized rate of return is a good idea.</p>
   <label for="min_itm">Minimum Odds In The Money %</label>
   <input type="text" id="min_itm" name="min_itm">
   <table class="table" id="option_detail_table">
@@ -14,7 +19,8 @@
       <tr>
         <th>Strike</th>
         <th>Calendar Days To Expiration</th>
-        <th tooltip="hello">Odds In The Money %</th>
+        <th>Odds In The Money %</th>
+        <th>Maximum Return %</th>
         <th>Annualized Rate Of Return</th>
       </tr>
     </thead>
@@ -31,13 +37,13 @@
             {{ put_stat.decimal_odds_in_the_money_implied | percentage }}
           </td>
           <td>
+            {{ put_stat.max_profit_decimal | percentage }}
+          </td>
+          <td>
             {{ put_stat.annualized_rate_of_return_decimal | percentage }}
           </td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
-
-  <a type="button" class="btn btn-primary" href="{% url 'ticker-update' pk=stockticker.pk %}">Edit</a>
-  <a type="button" class="btn btn-danger" href="{% url 'ticker-delete' pk=stockticker.pk %}" variant="danger">Delete</a>
 {% endblock %}
