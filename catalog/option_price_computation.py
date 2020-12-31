@@ -16,7 +16,8 @@ def get_current_price(stockticker_name):
         return None
     return yahoo_ticker_history.tail(1)['Close'].iloc[0]
 
-def get_put_stats_for_ticker(ticker_name):
+# only look at the 10 closest option days, so about 2 months weekly options
+def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
     yahoo_ticker = yfinance.Ticker(ticker_name)
     if COMPUTE_EXTRA_STATS:
         yahoo_ticker_history = yahoo_ticker.history(period="150d")
@@ -30,8 +31,7 @@ def get_put_stats_for_ticker(ticker_name):
         return {'put_stats': [], 'current_price': None}
     current_price = yahoo_ticker_history.tail(1)['Close'].iloc[0]
     put_stats = []
-    # only look at the 10 closest option days, so about 2 months weekly options
-    option_days = yahoo_ticker.options[:10]
+    option_days = yahoo_ticker.options[:maximum_option_days]
     for option_day in option_days:
         puts = yahoo_ticker.option_chain(option_day).puts
         interesting_indicies = puts[puts['strike'].gt(current_price)].index
@@ -66,7 +66,8 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         return None
     put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real put price
-    implied_volatility = put_implied_volatility_calculator.impliedVolatility # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low
+    # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
+    implied_volatility = put_implied_volatility_calculator.impliedVolatility
     put_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
     max_profit_decimal = effective_price / strike
     stats = {

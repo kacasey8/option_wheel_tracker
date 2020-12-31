@@ -40,7 +40,7 @@ def global_put_comparison(request):
     context = {}
     put_stats = []
     for stock_ticker in StockTicker.objects.all():
-        put_stats += get_put_stats_for_ticker(stock_ticker.name)['put_stats']
+        put_stats += get_put_stats_for_ticker(stock_ticker.name, maximum_option_days=4)['put_stats']
     context['put_stats'] = sorted(put_stats, key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
     return render(request, 'global_put_comparison.html', context=context)
 
