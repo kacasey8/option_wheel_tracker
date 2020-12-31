@@ -8,7 +8,7 @@ from datetime import datetime
 
 class StockTicker(models.Model):
     """Represents a publicly traded stock symbol"""
-    name = models.CharField(max_length=200, help_text='Enter a ticker, like TSLA.')
+    name = models.CharField(max_length=200, help_text='Enter a ticker, like TSLA.', unique=True)
 
     class StockRecommendation(models.TextChoices):
         NONE = 'NO', _('None')
