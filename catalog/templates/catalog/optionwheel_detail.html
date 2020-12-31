@@ -21,8 +21,8 @@
         <br>
         <br>
         <h6>Possible Actions:</h6>
-        <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">Add Call</a>
-        <a type="button" class="btn btn-success" href="{% url 'wheel-complete' pk=wheel.pk %}">Complete Wheel</a>
+        <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">If Assigned - Add Call</a>
+        <a type="button" class="btn btn-success" href="{% url 'wheel-complete' pk=wheel.pk %}">If Expired - Complete Wheel</a>
       {% endif %}
     {% else %}
       <i> No purchases yet.</i>
