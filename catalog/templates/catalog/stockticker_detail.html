@@ -10,7 +10,7 @@
   <a type="button" class="btn btn-primary" href="{% url 'ticker-update' pk=stockticker.pk %}">Edit</a>
   <a type="button" class="btn btn-danger" href="{% url 'ticker-delete' pk=stockticker.pk %}" variant="danger">Delete</a>
 
-  <h2 style="margin-top: 52px">Option Choices</h2>
+  <h2 style="margin-top: 52px">Option Selling Put Choices</h2>
   <p>Typically you want to choose options that have a higher than 70% chance of being in the money, since then you only have a 30% chance of actually acquiring the stock. Beyond that maximumizing the annualized rate of return is a good idea.</p>
   <label for="min_itm">Minimum Odds In The Money %</label>
   <input type="text" id="min_itm" name="min_itm">
