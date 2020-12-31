@@ -18,6 +18,7 @@
     <thead>
       <tr>
         <th>Strike</th>
+        <th>Premium</th>
         <th>Calendar Days To Expiration</th>
         <th>Odds In The Money %</th>
         <th>Maximum Return %</th>
@@ -29,6 +30,9 @@
         <tr>
           <td>
             {{ put_stat.strike }}
+          </td>
+          <td>
+            {{ put_stat.price }}
           </td>
           <td>
             {{ put_stat.days_to_expiry }} ({{put_stat.expiration_date}})
