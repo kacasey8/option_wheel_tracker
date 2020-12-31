@@ -1,8 +1,12 @@
 from django import forms
-from catalog.models import OptionPurchase, StockTicker
-
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
+
+from catalog.models import OptionPurchase, StockTicker
+
+import datetime
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -23,6 +27,24 @@ class OptionPurchaseForm(forms.ModelForm):
         widgets = {
             'purchase_date': forms.widgets.DateInput(attrs={'type': 'date'}),
             'expiration_date': forms.widgets.DateInput(attrs={'type': 'date'}),
+            'strike': forms.widgets.NumberInput(attrs={'step': 0.5, 'placeholder': 'Enter Strike price'}),
+            'premium': forms.widgets.NumberInput(attrs={'placeholder': 'Enter Premium'}),
+            'price_at_date': forms.widgets.NumberInput(attrs={'placeholder': 'Enter stock price'}),
             'user': forms.widgets.HiddenInput(),
             'option_wheel': forms.widgets.HiddenInput()
         }
+
+    def clean(self):
+        cleaned_data = super(OptionPurchaseForm, self).clean()
+        purchase_date = cleaned_data['purchase_date'].date()
+        expiration_date = cleaned_data['expiration_date']
+
+        # The purchase date can't be in the future
+        if purchase_date > datetime.date.today():
+            raise ValidationError(_('Invalid date - purchase in future'))
+
+        # The purchase date must be before the expiration date
+        if purchase_date >= expiration_date:
+            raise ValidationError(_('Invalid dates - expiration must be after purchase'))
+
+        return cleaned_data

@@ -2,9 +2,46 @@
 
 {% block content %}
   <h1>Option Wheel: {{ wheel }}</h1>
-  <p><strong>Cost Basis:</strong> {{ cost_basis }}</p>
+  <p>
+    <strong>Cost Basis:</strong> {{ cost_basis }}
+    <strong>Active:</strong> {{ wheel.is_active }}
+  </p>
 
-  <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">New Purchase</a>
+  <a href="{% url 'wheels' %}">All Wheels</a>
+  <br>
+  <br>
+
+  <strong>Status:</strong>
+  {% if wheel.is_active %}
+    {% if purchases %}
+      {% if expires %}
+        <i class="text-danger"> Set to expire on <strong>{{ expires | date:"m/d"}}</strong>. Check back then. </i>
+      {% else %}
+        <i> Expiration date reached.</i>
+        <br>
+        <br>
+        <h6>Possible Actions:</h6>
+        <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">If Assigned - Add Call</a>
+        <a type="button" class="btn btn-success" href="{% url 'wheel-complete' pk=wheel.pk %}">If Expired - Complete Wheel</a>
+      {% endif %}
+    {% else %}
+      <i> No purchases yet.</i>
+      <br>
+      <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">Add First Purchase</a>
+    {% endif %}
+  {% else %}
+    <i> Complete.</i>
+    <p>
+      <strong>Profit:</strong> {{ wheel.total_profit }}
+      <br>
+      <strong>Days Active:</strong> {{ wheel.total_days_active }}
+      <br>
+      <strong>Collatoral:</strong> {{ wheel.collatoral }}
+    </p>
+    <br>
+    <a type="button" class="btn btn-warning" href="{% url 'wheel-reactivate' pk=wheel.pk %}">Reactivate Wheel</a>
+  {% endif %}
+
   <br>
   <br>
 
@@ -12,7 +49,7 @@
     {% for purchase in purchases %}
       <li>
         <a href="{{ purchase.get_absolute_url }}">{{ purchase }}</a>
-        Purchased on {{ purchase.purchase_date.date }} for
+        Purchased on {{ purchase.purchase_date | date:"m/d" }} for
       <strong>${{ purchase.premium }}</strong> premium
       <i>({{ purchase.stock_ticker }} at ${{ purchase.price_at_date }})</i>
       </li>
