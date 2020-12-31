@@ -43,9 +43,9 @@ class OptionPurchase(models.Model):
     )
     purchase_date = models.DateTimeField()
     expiration_date = models.DateField()
-    premium = models.DecimalField(max_digits=12, decimal_places=2)
     strike = models.DecimalField(max_digits=12, decimal_places=2)
     price_at_date = models.DecimalField(max_digits=12, decimal_places=2)
+    premium = models.DecimalField(max_digits=12, decimal_places=2)
 
     class CallOrPut(models.TextChoices):
         CALL = 'C', _('Call')
@@ -75,6 +75,9 @@ class OptionWheel(models.Model):
     total_days_active = models.IntegerField(default=None, null=True)
     collatoral = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
 
+    def get_all_option_purchases(self):
+         return OptionPurchase.objects.filter(option_wheel=self.id).order_by('-expiration_date')
+     
     def get_first_option_purchase(self):
         return OptionPurchase.objects.filter(option_wheel=self.id).first()
     

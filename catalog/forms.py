@@ -23,6 +23,9 @@ class OptionPurchaseForm(forms.ModelForm):
         widgets = {
             'purchase_date': forms.widgets.DateInput(attrs={'type': 'date'}),
             'expiration_date': forms.widgets.DateInput(attrs={'type': 'date'}),
+            'strike': forms.widgets.NumberInput(attrs={'step': 0.5, 'placeholder': 'Enter Strike price'}),
+            'premium': forms.widgets.NumberInput(attrs={'placeholder': 'Enter Premium'}),
+            'price_at_date': forms.widgets.NumberInput(attrs={'placeholder': 'Enter stock price'}),
             'user': forms.widgets.HiddenInput(),
             'option_wheel': forms.widgets.HiddenInput()
         }
