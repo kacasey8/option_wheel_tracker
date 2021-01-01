@@ -9,6 +9,19 @@
     <strong>Quantity:</strong> {{ wheel.quantity }}
     <strong>Active:</strong> {{ wheel.is_active }}
   </p>
+  {% if wheel.is_active %}
+  <p>
+    <div>
+      <strong>Profit If Exits Here:</strong> ${{ profit_if_exits_here }}
+    </div>
+    <div>
+      <strong>Annualized Rate Of Return If Exits Here:</strong> {{ annualized_rate_of_return_if_exits_here | floatformat:2 }}x
+    </div>
+    <div>
+      <strong>Days Active So Far:</strong> {{ days_active_so_far }}
+    </div>
+  </p>
+  {% endif %}
 
   <a href="{% url 'wheels' %}">All Wheels</a>
   <br>
@@ -52,11 +65,17 @@
   {% else %}
     <i> Complete.</i>
     <div>
-      <strong>Total Profit:</strong> ${{ wheel.total_profit }}
-      {% if wheel.quantity > 1 %} (${{ wheel.total_profit | divide:wheel.quantity }}/contract) {% endif %}
+      <strong>Rate Of Return:</strong> {{ decimal_rate_of_return | percentage }}
     </div>
     <div>
       <strong>Total Days Active:</strong> {{ wheel.total_days_active }}
+    </div>
+    <div>
+      <strong>Annualized Rate Of Return:</strong> {{ annualized_rate_of_return_if_exits_here | floatformat:2 }}x
+    </div>
+    <div>
+      <strong>Total Profit:</strong> ${{ wheel.total_profit }}
+      {% if wheel.quantity > 1 %} (${{ wheel.total_profit | divide:wheel.quantity }}/contract) {% endif %}
     </div>
     <div>
       <strong>Collatoral:</strong> {{ wheel.collatoral }}

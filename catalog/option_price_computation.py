@@ -51,6 +51,10 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
                 put_stats.append(put_stat)
     return {'put_stats': put_stats, 'current_price': current_price}
 
+def compute_annualized_rate_of_return(profit_decimal, odds, days):
+    rate_of_return = 1 + profit_decimal
+    return (rate_of_return) ** (odds * BUSINESS_DAYS_IN_YEAR / days)
+
 def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date):
     strike, last_price, bid, ask = [interesting_put.strike, interesting_put.lastPrice, interesting_put.bid, interesting_put.ask]
     volume = interesting_put.volume
@@ -78,7 +82,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         # https://www.macroption.com/delta-calls-puts-probability-expiring-itm/ "Option’s delta as probability proxy"
         "max_profit_decimal": max_profit_decimal,
         "decimal_odds_in_the_money_implied": 1 + put_with_implied_volatility.putDelta,
-        "annualized_rate_of_return_decimal": (1 + max_profit_decimal) ** ((1 + put_with_implied_volatility.putDelta) * BUSINESS_DAYS_IN_YEAR / days_to_expiry * (1 + put_with_implied_volatility.putDelta))
+        "annualized_rate_of_return_decimal": compute_annualized_rate_of_return(max_profit_decimal, 1 + put_with_implied_volatility.putDelta, days_to_expiry)
     }
 
     if COMPUTE_EXTRA_STATS:

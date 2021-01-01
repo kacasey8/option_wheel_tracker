@@ -94,8 +94,8 @@ class OptionWheel(models.Model):
             return f"{quantity_str}{str(self.stock_ticker)}"
         strike = first_option_purchase.strike
         call_or_put = first_option_purchase.call_or_put
-        open = first_option_purchase.purchase_date.strftime('%m/%d')
-        return f"{quantity_str}${strike} {call_or_put} {str(self.stock_ticker)} (opened {open})"
+        open_date = first_option_purchase.purchase_date.strftime('%m/%d')
+        return f"{quantity_str}${strike} {call_or_put} {str(self.stock_ticker)} (opened {open_date})"
 
     def get_absolute_url(self):
         return reverse('wheel-detail', args=[str(self.id)])

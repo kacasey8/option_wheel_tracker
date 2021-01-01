@@ -10,7 +10,7 @@ from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
 from datetime import datetime, timedelta, date
 
-from .option_price_computation import get_current_price, compute_put_stat, get_put_stats_for_ticker
+from .option_price_computation import get_current_price, compute_put_stat, get_put_stats_for_ticker, compute_annualized_rate_of_return
 
 import yfinance
 import numpy
@@ -107,12 +107,28 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
         purchases = option_wheel.get_all_option_purchases()
         revenue = sum(purchase.premium for purchase in purchases)
         cost_basis = 'N/A'
+        profit_if_exits_here = 'N/A'
+        annualized_rate_of_return_if_exits_here = 'N/A'
+        days_active_so_far = 'N/A'
+        decimal_rate_of_return = 'N/A'
         expires = None
         if purchases:
+            first_purchase = option_wheel.get_first_option_purchase()
+            cost_basis = first_purchase.strike - revenue
             last_purchase = purchases[0]
-            cost_basis = last_purchase.strike - revenue
             if last_purchase.expiration_date > timezone.now().date():
                 expires = last_purchase.expiration_date
+            profit_if_exits_here = last_purchase.strike - cost_basis
+            days_active_so_far = numpy.busday_count(
+                first_purchase.purchase_date.date(),
+                last_purchase.expiration_date,
+            )
+            decimal_rate_of_return = float(profit_if_exits_here / first_purchase.strike)
+            annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(decimal_rate_of_return, 1, days_active_so_far)
+        context['decimal_rate_of_return'] = decimal_rate_of_return
+        context['profit_if_exits_here'] = profit_if_exits_here
+        context['annualized_rate_of_return_if_exits_here'] = annualized_rate_of_return_if_exits_here
+        context['days_active_so_far'] = days_active_so_far
         context['purchases'] = purchases
         context['cost_basis'] = cost_basis
         context['expires'] = expires
