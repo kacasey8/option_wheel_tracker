@@ -4,6 +4,8 @@
 
 {% block content %}
   <h1>Option Wheel: {{ wheel }}</h1>
+  <a href="{% url 'wheels' %}">All Wheels</a>
+  <p>All computation is done per share on this page. Multiply profits and collateral by 100 * quantity, since each contract is 100 shares</p>
   <p>
     <strong>Cost Basis:</strong> ${{ cost_basis }}
     <strong>Quantity:</strong> {{ wheel.quantity }}
@@ -15,6 +17,9 @@
       <strong>Profit If Exits Here:</strong> ${{ profit_if_exits_here }}
     </div>
     <div>
+      <strong>Rate Of Return If Exits Here:</strong> {{ decimal_rate_of_return | percentage }}
+    </div>
+    <div>
       <strong>Annualized Rate Of Return If Exits Here:</strong> {{ annualized_rate_of_return_if_exits_here | floatformat:2 }}x
     </div>
     <div>
@@ -22,8 +27,6 @@
     </div>
   </p>
   {% endif %}
-
-  <a href="{% url 'wheels' %}">All Wheels</a>
   <br>
   <br>
 
