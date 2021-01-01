@@ -184,7 +184,9 @@ class OptionWheelCreate(generic.edit.CreateView):
 class OptionWheelUpdate(generic.edit.UpdateView):
     model = OptionWheel
     form_class = OptionWheelForm
-    success_url = reverse_lazy('wheels')
+
+    def get_success_url(self):
+        return reverse('wheel-detail', args=[str(self.object.id)])
 
 class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionWheel
