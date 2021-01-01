@@ -4,7 +4,10 @@ register = template.Library()
 
 @register.filter
 def percentage(value):
-    return '{:.2%}'.format(value)
+    try:
+        return '{:.2%}'.format(value)
+    except (ValueError, TypeError):
+        return value
 
 @register.filter
 def divide(value, arg):

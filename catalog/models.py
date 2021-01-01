@@ -93,6 +93,8 @@ class OptionWheel(models.Model):
             return None
         revenue = sum(purchase.premium for purchase in purchases)
         first_purchase = self.get_first_option_purchase()
+        if not first_purchase:
+            return 'N/A'
         return first_purchase.strike - revenue
 
     def __str__(self):
