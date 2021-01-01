@@ -147,13 +147,15 @@ def complete_wheel(request, pk):
 
         premiums = sum(purchase.premium for purchase in purchases)
         profit = premiums + last_purchase.strike - first_purchase.strike
-        total_profit = option_wheel.quantity * profit
 
-        days = (last_purchase.expiration_date - first_purchase.purchase_date.date()).days
+        bus_days = numpy.busday_count(
+            first_purchase.purchase_date.date(),
+            last_purchase.expiration_date,
+        )
         max_collatoral = max(purchase.strike for purchase in purchases)
 
-        option_wheel.total_profit = total_profit
-        option_wheel.total_days_active = days
+        option_wheel.total_profit = profit
+        option_wheel.total_days_active = bus_days
         option_wheel.collatoral = max_collatoral
     option_wheel.save()
     return redirect('wheel-detail', pk=pk)
@@ -182,7 +184,9 @@ class OptionWheelCreate(generic.edit.CreateView):
 class OptionWheelUpdate(generic.edit.UpdateView):
     model = OptionWheel
     form_class = OptionWheelForm
-    success_url = reverse_lazy('wheels')
+
+    def get_success_url(self):
+        return reverse('wheel-detail', args=[str(self.object.id)])
 
 class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionWheel

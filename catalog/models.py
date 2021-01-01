@@ -76,10 +76,10 @@ class OptionWheel(models.Model):
     collatoral = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
 
     def get_all_option_purchases(self):
-         return OptionPurchase.objects.filter(option_wheel=self.id).order_by('-expiration_date')
+         return OptionPurchase.objects.filter(option_wheel=self.id).order_by('-expiration_date', '-purchase_date')
      
     def get_first_option_purchase(self):
-        return OptionPurchase.objects.filter(option_wheel=self.id).first()
+        return OptionPurchase.objects.filter(option_wheel=self.id).order_by('purchase_date', 'expiration_date').first()
     
     def get_open_date(self):
         first = self.get_first_option_purchase()
@@ -89,21 +89,23 @@ class OptionWheel(models.Model):
 
     def get_cost_basis(self):
         purchases = self.get_all_option_purchases()
-        if purchases is None:
-            return None
+        if not purchases:
+            return 'N/A'
         revenue = sum(purchase.premium for purchase in purchases)
         first_purchase = self.get_first_option_purchase()
         return first_purchase.strike - revenue
 
     def __str__(self):
-        first_option_purchase = self.get_first_option_purchase()
+        purchases = self.get_all_option_purchases()
         quantity_str = f"({self.quantity}X) " if self.quantity > 1 else ""
-        if first_option_purchase is None:
+        if not purchases:
             return f"{quantity_str}{str(self.stock_ticker)}"
-        strike = first_option_purchase.strike
-        call_or_put = first_option_purchase.call_or_put
-        open_date = first_option_purchase.purchase_date.strftime('%m/%d')
-        return f"{quantity_str}${strike} {call_or_put} {str(self.stock_ticker)} (opened {open_date})"
+        last_purchase = purchases[0]
+        strike = last_purchase.strike
+        call_or_put = last_purchase.call_or_put
+        open_date = self.get_open_date().strftime('%m/%d')
+        exp_date = last_purchase.expiration_date.strftime('%m/%d')
+        return f"{quantity_str}${strike} {call_or_put} {str(self.stock_ticker)} (opened {open_date}, exp. {exp_date})"
 
     def get_absolute_url(self):
         return reverse('wheel-detail', args=[str(self.id)])

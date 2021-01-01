@@ -35,30 +35,35 @@
   </p>
 
   {% if expires %}
-    <p><i class="text-danger"> Set to expire on <strong>{{ expires | date:"m/d"}}</strong>. Check back then.</i></p>
+    <p><i class="text-danger">Warning: Set to expire on <strong>{{ expires | date:"m/d"}}</strong>. Check back then to take the next action.</i></p>
   {% endif %}
 
   <strong>Status:</strong>
   {% if wheel.is_active %}
     {% if purchases %}
+      {% if expires %}<i> If expires now, </i>{% endif %}
       {% if purchases.0.call_or_put == 'P' and current_price < purchases.0.strike %}
-        <span class="badge badge-pill badge-primary">Put Pending Assignment</span>
+        <span class="badge badge-pill badge-primary">Put {% if not expires %} Pending {% endif %} Assignment</span>
       {% elif purchases.0.call_or_put == 'P' %}
-        <span class="badge badge-pill badge-success">Put Pending Expiration</span>
+        <span class="badge badge-pill badge-success">Put {% if not expires %} Pending {% endif %} Expiration</span>
       {% elif current_price < purchases.0.strike %}
-        <span class="badge badge-pill badge-primary">Call Pending Expiration</span>
+        <span class="badge badge-pill badge-primary">Call {% if not expires %} Pending {% endif %} Expiration</span>
       {% else%}
-        <span class="badge badge-pill badge-success">Call Pending Assignment</span>
+        <span class="badge badge-pill badge-success">Call {% if not expires %} Pending {% endif %} Assignment</span>
       {% endif %}
-      <p>
-        <div>Possible Actions:</div>
-        <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">
-          {% if purchases.0.call_or_put == 'P' %} Put Assigned {% else %} Call Expired {% endif %} - Add Call
-        </a>
-        <a type="button" class="btn btn-success" href="{% url 'wheel-complete' pk=wheel.pk %}">
-          {% if purchases.0.call_or_put == 'P' %} Put Expired {% else %} Call Assigned {% endif %} - Complete Wheel
-        </a>
-      <p>
+      <div>
+        <div class="card mt-2 d-inline-flex">
+          <div class="card-body">
+            <h5 class="card-title">Possible Actions</h5>
+            <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">
+              {% if purchases.0.call_or_put == 'P' %} Put Assigned {% else %} Call Expired {% endif %} - Add Call
+            </a>
+            <a type="button" class="btn btn-success" href="{% url 'wheel-complete' pk=wheel.pk %}">
+              {% if purchases.0.call_or_put == 'P' %} Put Expired {% else %} Call Assigned {% endif %} - Complete Wheel
+            </a>
+          </div>
+        </div>
+      <div>
     {% else %}
       <i> No purchases yet.</i>
       <div>
@@ -77,8 +82,8 @@
       <strong>Annualized Rate Of Return:</strong> {{ annualized_rate_of_return_if_exits_here | floatformat:2 }}x
     </div>
     <div>
-      <strong>Total Profit:</strong> ${{ wheel.total_profit }}
-      {% if wheel.quantity > 1 %} (${{ wheel.total_profit | divide:wheel.quantity }}/contract) {% endif %}
+      <strong>Profit:</strong> ${{ wheel.total_profit }}
+      {% if wheel.quantity > 1 %} (${{ wheel.total_profit | multiply:wheel.quantity | floatformat:2}} total) {% endif %}
     </div>
     <div>
       <strong>Collatoral:</strong> {{ wheel.collatoral }}
