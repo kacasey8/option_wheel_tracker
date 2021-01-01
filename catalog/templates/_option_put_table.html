@@ -1,8 +1,8 @@
 {% load filter_tags %}
 <h2>Option Selling Put Choices</h2>
-<p>Typically you want to choose options that have a higher than 70% chance of being in the money, since then you only have a 30% chance of actually acquiring the stock. Beyond that maximumizing the annualized rate of return is a good idea.</p>
-<label for="min_itm">Minimum Odds In The Money %</label>
-<input type="text" id="min_itm" name="min_itm">
+<p>Typically you want to choose options that have a higher than 70% chance of being out of the money, since then you only have a 30% chance of actually acquiring the stock. Beyond that maximumizing the annualized rate of return is a good idea.</p>
+<label for="min_otm">Minimum Odds Out Of The Money %</label>
+<input type="text" id="min_otm" name="min_otm">
 <table class="table" id="option_detail_table">
   <thead>
     <tr>
@@ -10,7 +10,7 @@
       <th>Strike</th>
       <th>Premium</th>
       <th>Calendar Days To Expiration</th>
-      <th>Odds In The Money %</th>
+      <th>Odds Out Of The Money %</th>
       <th>Maximum Return %</th>
       <th>Annualized Rate Of Return</th>
     </tr>
@@ -31,7 +31,7 @@
           {{ put_stat.days_to_expiry }} ({{put_stat.expiration_date}})
         </td>
         <td>
-          {{ put_stat.decimal_odds_in_the_money_implied | percentage }}
+          {{ put_stat.decimal_odds_out_of_the_money_implied | percentage }}
         </td>
         <td>
           {{ put_stat.max_profit_decimal | percentage }}
