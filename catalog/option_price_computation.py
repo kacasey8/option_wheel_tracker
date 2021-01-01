@@ -9,6 +9,10 @@ COMPUTE_EXTRA_STATS = False
 INTEREST_RATE = 1
 BUSINESS_DAYS_IN_YEAR = 252
 
+def compute_annualized_rate_of_return(profit_decimal, odds, days):
+    rate_of_return = 1 + profit_decimal
+    return (rate_of_return) ** (odds * BUSINESS_DAYS_IN_YEAR / days)
+
 def get_current_price(stockticker_name):
     yahoo_ticker = yfinance.Ticker(stockticker_name)
     yahoo_ticker_history = yahoo_ticker.history(period="1d")
@@ -16,8 +20,7 @@ def get_current_price(stockticker_name):
         return None
     return yahoo_ticker_history.tail(1)['Close'].iloc[0]
 
-# only look at the 10 closest option days, so about 2 months weekly options
-def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
+def get_yfinance_history(ticker_name):
     yahoo_ticker = yfinance.Ticker(ticker_name)
     if COMPUTE_EXTRA_STATS:
         yahoo_ticker_history = yahoo_ticker.history(period="150d")
@@ -25,8 +28,18 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
         logarithmic_returns = numpy.log(yahoo_ticker_history['Close'] / yahoo_ticker_history['Close'].shift(1))
         historical_volatility = logarithmic_returns.std() * numpy.sqrt(BUSINESS_DAYS_IN_YEAR) * 100
     else:
-        historical_volatility = None
         yahoo_ticker_history = yahoo_ticker.history(period="1d")
+        historical_volatility = None
+    return {
+        'yahoo_ticker_history': yahoo_ticker_history,
+        'historical_volatility': historical_volatility
+    }
+
+# only look at the 10 closest option days, so about 2 months weekly options
+def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
+    yfinance_history = get_yfinance_history(ticker_name)
+    yahoo_ticker_history = yfinance_history['yahoo_ticker_history']
+    historical_volatility = yfinance_history['historical_volatility']
     if yahoo_ticker_history.empty:
         return {'put_stats': [], 'current_price': None}
     current_price = yahoo_ticker_history.tail(1)['Close'].iloc[0]
@@ -56,10 +69,6 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
                 put_stat.update({"ticker": ticker_name})
                 put_stats.append(put_stat)
     return {'put_stats': put_stats, 'current_price': current_price}
-
-def compute_annualized_rate_of_return(profit_decimal, odds, days):
-    rate_of_return = 1 + profit_decimal
-    return (rate_of_return) ** (odds * BUSINESS_DAYS_IN_YEAR / days)
 
 def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date):
     strike, last_price, bid, ask = [interesting_put.strike, interesting_put.lastPrice, interesting_put.bid, interesting_put.ask]
