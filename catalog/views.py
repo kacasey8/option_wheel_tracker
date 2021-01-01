@@ -148,11 +148,14 @@ def complete_wheel(request, pk):
         premiums = sum(purchase.premium for purchase in purchases)
         profit = premiums + last_purchase.strike - first_purchase.strike
 
-        days = (last_purchase.expiration_date - first_purchase.purchase_date.date()).days
+        bus_days = numpy.busday_count(
+            first_purchase.purchase_date.date(),
+            last_purchase.expiration_date,
+        )
         max_collatoral = max(purchase.strike for purchase in purchases)
 
         option_wheel.total_profit = profit
-        option_wheel.total_days_active = days
+        option_wheel.total_days_active = bus_days
         option_wheel.collatoral = max_collatoral
     option_wheel.save()
     return redirect('wheel-detail', pk=pk)
