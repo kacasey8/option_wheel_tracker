@@ -2,6 +2,9 @@
 
 {% block content %}
   <h1>Wheel: {{ option_wheel }}</h1>
+  <p>
+    <strong>Cost Basis:</strong> ${{ cost_basis }}
+  </p>
   <br>
   <form action="" method="post">
     {% csrf_token %}

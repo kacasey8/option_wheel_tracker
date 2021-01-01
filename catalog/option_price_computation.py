@@ -45,7 +45,13 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
         # add one to business days since it includes the current day too
         days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
         for index, interesting_put in interesting_puts.iterrows():
-            put_stat = compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date=option_day)
+            put_stat = compute_put_stat(
+                current_price,
+                interesting_put,
+                days_to_expiry,
+                historical_volatility,
+                expiration_date=option_day
+            )
             if put_stat is not None:
                 put_stat.update({"ticker": ticker_name})
                 put_stats.append(put_stat)

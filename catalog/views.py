@@ -12,7 +12,6 @@ from datetime import datetime, timedelta, date
 
 from .option_price_computation import get_current_price, compute_put_stat, get_put_stats_for_ticker, compute_annualized_rate_of_return
 
-import yfinance
 import numpy
 
 def _get_next_friday():
@@ -105,8 +104,7 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
         context = super(OptionWheelDetailView, self).get_context_data(**kwargs)
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('pk'))
         purchases = option_wheel.get_all_option_purchases()
-        revenue = sum(purchase.premium for purchase in purchases)
-        cost_basis = 'N/A'
+        cost_basis = option_wheel.get_cost_basis()
         profit_if_exits_here = 'N/A'
         annualized_rate_of_return_if_exits_here = 'N/A'
         days_active_so_far = 'N/A'
@@ -114,7 +112,6 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
         expires = None
         if purchases:
             first_purchase = option_wheel.get_first_option_purchase()
-            cost_basis = first_purchase.strike - revenue
             last_purchase = purchases[0]
             if last_purchase.expiration_date > timezone.now().date():
                 expires = last_purchase.expiration_date
@@ -230,6 +227,7 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         context = super(OptionPurchaseCreate, self).get_context_data(**kwargs)
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
         context['option_wheel'] = option_wheel
+        context['cost_basis'] = option_wheel.get_cost_basis()
         return context
 
     def get_success_url(self):

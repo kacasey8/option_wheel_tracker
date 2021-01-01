@@ -87,6 +87,14 @@ class OptionWheel(models.Model):
             return first.purchase_date.date()
         return datetime.min.date()
 
+    def get_cost_basis(self):
+        purchases = self.get_all_option_purchases()
+        if purchases is None:
+            return None
+        revenue = sum(purchase.premium for purchase in purchases)
+        first_purchase = self.get_first_option_purchase()
+        return first_purchase.strike - revenue
+
     def __str__(self):
         first_option_purchase = self.get_first_option_purchase()
         quantity_str = f"({self.quantity}X) " if self.quantity > 1 else ""
