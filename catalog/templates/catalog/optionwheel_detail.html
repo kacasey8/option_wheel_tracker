@@ -77,8 +77,8 @@
       <strong>Annualized Rate Of Return:</strong> {{ annualized_rate_of_return_if_exits_here | floatformat:2 }}x
     </div>
     <div>
-      <strong>Total Profit:</strong> ${{ wheel.total_profit }}
-      {% if wheel.quantity > 1 %} (${{ wheel.total_profit | divide:wheel.quantity }}/contract) {% endif %}
+      <strong>Profit:</strong> ${{ wheel.total_profit }}
+      {% if wheel.quantity > 1 %} (${{ wheel.total_profit | multiply:wheel.quantity | floatformat:2}} total) {% endif %}
     </div>
     <div>
       <strong>Collatoral:</strong> {{ wheel.collatoral }}

@@ -15,3 +15,11 @@ def divide(value, arg):
         return float(value) / float(arg)
     except (ValueError, ZeroDivisionError):
         return None
+
+@register.filter
+def multiply(value, arg):
+    print(value, arg)
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return None
