@@ -76,10 +76,10 @@ class OptionWheel(models.Model):
     collatoral = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
 
     def get_all_option_purchases(self):
-         return OptionPurchase.objects.filter(option_wheel=self.id).order_by('-expiration_date')
+         return OptionPurchase.objects.filter(option_wheel=self.id).order_by('-expiration_date', '-purchase_date')
      
     def get_first_option_purchase(self):
-        return OptionPurchase.objects.filter(option_wheel=self.id).first()
+        return OptionPurchase.objects.filter(option_wheel=self.id).order_by('purchase_date', 'expiration_date').first()
     
     def get_open_date(self):
         first = self.get_first_option_purchase()
