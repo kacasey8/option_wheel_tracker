@@ -81,7 +81,7 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
     return {'put_stats': put_stats, 'current_price': current_price}
 
 # only look at the 6 closest option days, so about 1 month on weekly options
-def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, collateral, maximum_option_days=6):
+def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, collateral, maximum_option_days=10):
     yfinance_history = get_yfinance_history(ticker_name)
     if yfinance_history is None:
         return {'call_stats': [], 'current_price': None}
@@ -92,7 +92,13 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
     call_stats = []
     option_days = yahoo_ticker.options[:maximum_option_days]
     for option_day in option_days:
-        print(option_day)
+        option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
+        # add one to business days since it includes the current day too
+        days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
+        if days_to_expiry > 60:
+            # This will take too long for python to compute. Mainly to short circuit for those
+            # monthly options
+            continue
         calls = yahoo_ticker.option_chain(option_day).calls
         interesting_indicies = calls[calls['strike'].gt(current_price)].index
         if len(interesting_indicies) == 0:
@@ -102,9 +108,6 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
         # ITM calls might be useful to make sure the stock gets sold, while OTM calls are useful
         # to hold onto the stock until it recovers.
         interesting_calls = calls[max(otm_threshold_index - 4, 0):min(otm_threshold_index + 4, calls.shape[0])]
-        option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
-        # add one to business days since it includes the current day too
-        days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
         for index, interesting_call in interesting_calls.iterrows():
             call_stat = compute_call_stat(
                 current_price,
