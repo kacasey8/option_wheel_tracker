@@ -8,6 +8,9 @@ COMPUTE_EXTRA_STATS = False
 # interest rate: https://ycharts.com/indicators/10_year_treasury_rate#:~:text=10%20Year%20Treasury%20Rate%20is%20at%200.94%25%2C%20compared%20to%200.94,long%20term%20average%20of%204.39%25.
 INTEREST_RATE = 1
 BUSINESS_DAYS_IN_YEAR = 252
+# Some stats on yahoo finance are only based on a few stray trades, so we need to remove those
+# because these are false
+MINIMUM_VOLUME = 20
 
 # For puts, we assume that when we fail we get a rate of return of 1x. For calls
 # we assume we just miss out on the profits of the last strike, but everything else has already
@@ -92,6 +95,7 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
     call_stats = []
     option_days = yahoo_ticker.options[:maximum_option_days]
     for option_day in option_days:
+        print(option_day)
         option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
         # add one to business days since it includes the current day too
         days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
@@ -122,11 +126,12 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
             if call_stat is not None:
                 call_stat.update({"ticker": ticker_name})
                 call_stats.append(call_stat)
+    print("finished call stats")
     return {'call_stats': call_stats, 'current_price': current_price}
 
 def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date):
     volume = interesting_put.volume
-    if volume < 10 or numpy.isnan(volume):
+    if volume < MINIMUM_VOLUME or numpy.isnan(volume):
         # These are probably too low volume to be legit. Yahoo finance will show wrong prices
         return None
     strike, last_price, bid, ask = [interesting_put.strike, interesting_put.lastPrice, interesting_put.bid, interesting_put.ask]
@@ -181,7 +186,7 @@ def compute_call_stat(
     collateral,
 ):
     volume = interesting_call.volume
-    if volume < 10 or numpy.isnan(volume):
+    if volume < MINIMUM_VOLUME or numpy.isnan(volume):
         # These are probably too low volume to be legit. Yahoo finance will show wrong prices
         return None
     strike, last_price, bid, ask = [interesting_call.strike, interesting_call.lastPrice, interesting_call.bid, interesting_call.ask]
