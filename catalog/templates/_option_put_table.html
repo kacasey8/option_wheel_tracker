@@ -1,6 +1,7 @@
 {% load filter_tags %}
 <h2>Option Selling Put Choices</h2>
 <p>Typically you want to choose options that have a higher than 70% chance of being out of the money, since then you only have a 30% chance of actually acquiring the stock. Beyond that maximumizing the annualized rate of return is a good idea.</p>
+<p>Annualized rate of return is computed fairly bullish as (max_return * odds + (1 - odds)) ^ (252 / calendar_days). This assumes that if you accidently acquire the stock you will be able to do something such that effectively get you a 1x return immediately.</p>
 <label for="min_otm">Minimum Odds Out Of The Money %</label>
 <input type="text" id="min_otm" name="min_otm">
 <table class="table" id="option_detail_table">

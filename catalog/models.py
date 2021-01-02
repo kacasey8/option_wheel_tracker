@@ -80,6 +80,9 @@ class OptionWheel(models.Model):
      
     def get_first_option_purchase(self):
         return OptionPurchase.objects.filter(option_wheel=self.id).order_by('purchase_date', 'expiration_date').first()
+
+    def get_last_option_purchase(self):
+        return OptionPurchase.objects.filter(option_wheel=self.id).order_by('purchase_date', 'expiration_date').last()
     
     def get_open_date(self):
         first = self.get_first_option_purchase()
@@ -94,6 +97,12 @@ class OptionWheel(models.Model):
         revenue = sum(purchase.premium for purchase in purchases)
         first_purchase = self.get_first_option_purchase()
         return first_purchase.strike - revenue
+
+    def get_revenue(self):
+        purchases = self.get_all_option_purchases()
+        if not purchases:
+            return 'N/A'
+        return sum(purchase.premium for purchase in purchases)
 
     def __str__(self):
         purchases = self.get_all_option_purchases()

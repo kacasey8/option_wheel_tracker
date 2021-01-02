@@ -111,4 +111,6 @@
   <a type="button" class="btn btn-primary" href="{% url 'wheel-update' pk=wheel.pk %}">Edit</a>
   <a type="button" class="btn btn-danger" href="{% url 'wheel-delete' pk=wheel.pk %}" variant="danger">Delete</a>
 
+  <br>
+  {% include '_option_call_table.html' %}
 {% endblock %}

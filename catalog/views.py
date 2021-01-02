@@ -10,7 +10,13 @@ from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
 from datetime import datetime, timedelta, date
 
-from .option_price_computation import get_current_price, compute_put_stat, get_put_stats_for_ticker, compute_annualized_rate_of_return
+from .option_price_computation import (
+    get_current_price,
+    compute_put_stat,
+    get_put_stats_for_ticker,
+    compute_annualized_rate_of_return,
+    get_call_stats_for_option_wheel
+)
 
 import numpy
 
@@ -112,7 +118,7 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
         expires = None
         if purchases:
             first_purchase = option_wheel.get_first_option_purchase()
-            last_purchase = purchases[0]
+            last_purchase = option_wheel.get_last_option_purchase()
             if last_purchase.expiration_date > timezone.now().date():
                 expires = last_purchase.expiration_date
             profit_if_exits_here = last_purchase.strike - cost_basis
@@ -122,6 +128,10 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
             )
             decimal_rate_of_return = float(profit_if_exits_here / first_purchase.strike)
             annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(decimal_rate_of_return, 1, days_active_so_far)
+            # days active so far basically assumes that if the last purchase is still ongoing
+            # that we'll be able to duplicate the current situation after the last purchase expires
+            call_stats = get_call_stats_for_option_wheel(option_wheel.stock_ticker.name, days_active_so_far, option_wheel.get_revenue(), collateral=first_purchase.strike)
+            context['call_stats'] = call_stats['call_stats']
         context['decimal_rate_of_return'] = decimal_rate_of_return
         context['profit_if_exits_here'] = profit_if_exits_here
         context['annualized_rate_of_return_if_exits_here'] = annualized_rate_of_return_if_exits_here
