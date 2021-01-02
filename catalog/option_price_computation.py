@@ -92,6 +92,7 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
     call_stats = []
     option_days = yahoo_ticker.options[:maximum_option_days]
     for option_day in option_days:
+        print(option_day)
         calls = yahoo_ticker.option_chain(option_day).calls
         interesting_indicies = calls[calls['strike'].gt(current_price)].index
         if len(interesting_indicies) == 0:
