@@ -6,7 +6,8 @@ in the money, thus selling our stock, and we repeat the wheel from scratch. Ther
 only thing to maximize is annualized rate of return. By default we assume we need at least
 a 30% chance of selling the stock successfully, since we might not want to be holding this stock
 for too long</p>
-<p>Annualized rate of return is computed fairly bullish as (max_return * odds_otm + (1 - odds_otm)) ^ (252 / calendar_days_total_for_wheel). This assumes that if you keep the stock you will be able to do something to effectively get you a 1x return immediately.</p>
+<p>Annualized rate of return is computed fairly bullish as (max_return * odds_otm) ^ (252 / calendar_days_total_for_wheel) + (1 - odds_otm) * (current_price - cost_basis). This assumes that if you keep the stock you'd be able to sell it on the open market for roughly the same amount
+as the current price.</p>
 <p>If you want to be more bearish on the stock, then you'll want to maximum the odds you can get rid of the stock. This will cut into your gains, but will make sure you can repeat the
 wheel process on a new stock quickly. In this strategy you would ignore annualized rate of return,
 set the minimum odds to a fairly high number such as 70, then sort by calendar days to minimize
