@@ -222,13 +222,15 @@ def compute_call_stat(
     odds = call_with_implied_volatility.callDelta
     total_days_to_expiry = days_to_expiry + days_active_so_far
     success_rate_of_return = (1 + max_profit_decimal) ** (BUSINESS_DAYS_IN_YEAR / total_days_to_expiry)
-    # In the case that we keep the stock, let's assuming we'd sell the stock on the open market
-    # right after the expiration, and the stock price remains the same as the current stock price.
-    # If this is a positive strategy, we assume we'd repeat it the rest of the year, but if it's a
-    # negative strategy we assume we would not repeat it.
-    failure_rate_of_return = (effective_price + float(revenue) + current_price - float(collateral)) / float(collateral)
+    # In the case that we keep the stock, one choice is to sell the stock on the open market right after
+    # We'll assume the stock price decays at a slow rate, of at most .1% loss each day.
+    failure_rate_of_return = 1 + (effective_price + float(revenue) + current_price * (0.999 ** days_to_expiry) - float(collateral)) / float(collateral)
+    # If this is profitable, we'll repeat it the rest of the year
+    # if not, we'll assume it takes the rest of the year to recover, but that we can secure a net equal return
     if failure_rate_of_return > 1:
         failure_rate_of_return = failure_rate_of_return ** (BUSINESS_DAYS_IN_YEAR / total_days_to_expiry)
+    else:
+        failure_rate_of_return = 1
     annualized_rate_of_return = odds * success_rate_of_return + (1 - odds) * failure_rate_of_return
     stats = {
         "strike": strike,
