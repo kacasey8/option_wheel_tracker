@@ -218,9 +218,18 @@ def compute_call_stat(
     call_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
     proposed_strike_difference_proceeds = strike - float(collateral)
     max_profit_decimal = (proposed_strike_difference_proceeds + effective_price + float(revenue)) / float(collateral)
-    # assume that if the call fails, our rate of return is going to continue at this price
-    expected_profit_if_call_expires = effective_price / float(collateral)
+
+    odds = call_with_implied_volatility.callDelta
     total_days_to_expiry = days_to_expiry + days_active_so_far
+    success_rate_of_return = (1 + max_profit_decimal) ** (BUSINESS_DAYS_IN_YEAR / total_days_to_expiry)
+    # In the case that we keep the stock, let's assuming we'd sell the stock on the open market
+    # right after the expiration, and the stock price remains the same as the current stock price.
+    # If this is a positive strategy, we assume we'd repeat it the rest of the year, but if it's a
+    # negative strategy we assume we would not repeat it.
+    failure_rate_of_return = (effective_price + float(revenue) + current_price - float(collateral)) / float(collateral)
+    if failure_rate_of_return > 1:
+        failure_rate_of_return = failure_rate_of_return ** (BUSINESS_DAYS_IN_YEAR / total_days_to_expiry)
+    annualized_rate_of_return = odds * success_rate_of_return + (1 - odds) * failure_rate_of_return
     stats = {
         "strike": strike,
         "price": effective_price,
@@ -228,12 +237,7 @@ def compute_call_stat(
         "days_to_expiry": days_to_expiry,
         "total_days_to_expiry": total_days_to_expiry,
         "max_profit_decimal": max_profit_decimal,
-        "decimal_odds_out_of_the_money_implied": call_with_implied_volatility.callDelta,
-        "annualized_rate_of_return_decimal": compute_annualized_rate_of_return(
-            max_profit_decimal,
-            call_with_implied_volatility.callDelta,
-            total_days_to_expiry,
-            expected_profit_if_call_expires
-        )
+        "decimal_odds_out_of_the_money_implied": odds,
+        "annualized_rate_of_return_decimal": annualized_rate_of_return
     }
     return stats
