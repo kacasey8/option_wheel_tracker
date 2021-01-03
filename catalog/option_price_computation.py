@@ -218,6 +218,8 @@ def compute_call_stat(
     call_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
     proposed_strike_difference_proceeds = strike - float(collateral)
     max_profit_decimal = (proposed_strike_difference_proceeds + effective_price + float(revenue)) / float(collateral)
+    # assume the price remains the same until expiry, and then we sell on the open market for that price
+    expected_profit_if_call_expires = (effective_price + float(revenue) + current_price - float(collateral)) / float(collateral)
     total_days_to_expiry = days_to_expiry + days_active_so_far
     stats = {
         "strike": strike,
@@ -227,6 +229,11 @@ def compute_call_stat(
         "total_days_to_expiry": total_days_to_expiry,
         "max_profit_decimal": max_profit_decimal,
         "decimal_odds_out_of_the_money_implied": call_with_implied_volatility.callDelta,
-        "annualized_rate_of_return_decimal": compute_annualized_rate_of_return(max_profit_decimal, call_with_implied_volatility.callDelta, total_days_to_expiry)
+        "annualized_rate_of_return_decimal": compute_annualized_rate_of_return(
+            max_profit_decimal,
+            call_with_implied_volatility.callDelta,
+            total_days_to_expiry,
+            expected_profit_if_call_expires
+        )
     }
     return stats
