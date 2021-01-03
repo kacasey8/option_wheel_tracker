@@ -95,7 +95,6 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
     call_stats = []
     option_days = yahoo_ticker.options[:maximum_option_days]
     for option_day in option_days:
-        print(option_day)
         option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
         # add one to business days since it includes the current day too
         days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
@@ -104,7 +103,6 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
             # monthly options
             continue
         calls = yahoo_ticker.option_chain(option_day).calls
-        print("yahoo finance download done")
         interesting_indicies = calls[calls['strike'].gt(current_price)].index
         if len(interesting_indicies) == 0:
             continue
@@ -114,8 +112,6 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
         # to hold onto the stock until it recovers.
         interesting_calls = calls[max(otm_threshold_index - 4, 0):min(otm_threshold_index + 4, calls.shape[0])]
         for index, interesting_call in interesting_calls.iterrows():
-            print("computing")
-            print(interesting_call)
             call_stat = compute_call_stat(
                 current_price,
                 interesting_call,
@@ -126,11 +122,9 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
                 revenue=revenue,
                 collateral=collateral,
             )
-            print("compute done")
             if call_stat is not None:
                 call_stat.update({"ticker": ticker_name})
                 call_stats.append(call_stat)
-    print("finished call stats")
     return {'call_stats': call_stats, 'current_price': current_price}
 
 def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date):
@@ -145,6 +139,12 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         # During trading hours we assume we'll assuming worse case that we can only get it for bid price
         effective_price = bid
     if effective_price == 0:
+        return None
+    if strike - effective_price < current_price:
+        # this option has no intrinsic value, since it would be more efficient
+        # to just buy the stock on the open market in this case. This is probably from
+        # there being no legitimate bids, and we need to skip, since mibian will lag out
+        # if it attempts to compute this
         return None
     put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real put price
@@ -201,15 +201,17 @@ def compute_call_stat(
         effective_price = bid
     if effective_price == 0:
         return None
-    print("pre-mibian")
+    if strike + effective_price < current_price:
+        # this option has no intrinsic value, since it would be more efficient
+        # to just sell the stock on the open market in this case. This is probably from
+        # there being no legitimate bids, and we need to skip, since mibian will lag out
+        # if it attempts to compute this
+        return None
     call_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], callPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real call price
     # Yahoo's volatility in interesting_call.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
-    print("step 1 done")
     implied_volatility = call_implied_volatility_calculator.impliedVolatility
-    print(implied_volatility)
     call_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
-    print("post-mibian")
     proposed_strike_difference_proceeds = strike - float(collateral)
     max_profit_decimal = (proposed_strike_difference_proceeds + effective_price + float(revenue)) / float(collateral)
     total_days_to_expiry = days_to_expiry + days_active_so_far
