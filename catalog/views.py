@@ -130,9 +130,8 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
             annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(decimal_rate_of_return, 1, days_active_so_far)
             # days active so far basically assumes that if the last purchase is still ongoing
             # that we'll be able to duplicate the current situation after the last purchase expires
-            if option_wheel.is_active:
-                call_stats = get_call_stats_for_option_wheel(option_wheel.stock_ticker.name, days_active_so_far, option_wheel.get_revenue(), collateral=first_purchase.strike)
-                context['call_stats'] = call_stats['call_stats']
+            call_stats = get_call_stats_for_option_wheel(option_wheel.stock_ticker.name, days_active_so_far, option_wheel.get_revenue(), collateral=first_purchase.strike)
+            context['call_stats'] = call_stats['call_stats']
         context['decimal_rate_of_return'] = decimal_rate_of_return
         context['profit_if_exits_here'] = profit_if_exits_here
         context['annualized_rate_of_return_if_exits_here'] = annualized_rate_of_return_if_exits_here

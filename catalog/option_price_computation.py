@@ -132,6 +132,10 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
     if volume < MINIMUM_VOLUME or numpy.isnan(volume):
         # These are probably too low volume to be legit. Yahoo finance will show wrong prices
         return None
+    if interesting_put.impliedVolatility == 0:
+        # This likely indicates a broken option (bid/ask is busted),
+        # and mibian will take a long time computing these
+        return None
     strike, last_price, bid, ask = [interesting_put.strike, interesting_put.lastPrice, interesting_put.bid, interesting_put.ask]
     effective_price = last_price
     if (bid == 0 and ask == 0) == False:
@@ -192,6 +196,10 @@ def compute_call_stat(
     volume = interesting_call.volume
     if volume < MINIMUM_VOLUME or numpy.isnan(volume):
         # These are probably too low volume to be legit. Yahoo finance will show wrong prices
+        return None
+    if interesting_call.impliedVolatility == 0:
+        # This likely indicates a broken option (bid/ask is busted),
+        # and mibian will take a long time computing these
         return None
     strike, last_price, bid, ask = [interesting_call.strike, interesting_call.lastPrice, interesting_call.bid, interesting_call.ask]
     effective_price = last_price
