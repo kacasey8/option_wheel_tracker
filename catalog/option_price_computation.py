@@ -140,7 +140,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         effective_price = bid
     if effective_price == 0:
         return None
-    if strike > current_price - effective_price:
+    if strike > current_price + effective_price:
         # this option has no intrinsic value, since it would be more efficient
         # to just buy the stock on the open market in this case. This is probably from
         # there being no legitimate bids, and we need to skip, since mibian will lag out
