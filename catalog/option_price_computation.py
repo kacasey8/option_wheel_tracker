@@ -103,10 +103,10 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
         if len(interesting_indicies) == 0:
             continue
         otm_threshold_index = interesting_indicies[0]
-        # For selling a call, we'll analysis the 5 highest ITM calls and 5 lowest OTM calls
+        # For selling a call, we'll analysis the 10 highest ITM calls and 10 lowest OTM calls
         # ITM calls might be useful to make sure the stock gets sold, while OTM calls are useful
         # to hold onto the stock until it recovers.
-        interesting_calls = calls[max(otm_threshold_index - 5, 0):min(otm_threshold_index + 5, calls.shape[0])]
+        interesting_calls = calls[max(otm_threshold_index - 10, 0):min(otm_threshold_index + 10, calls.shape[0])]
         for index, interesting_call in interesting_calls.iterrows():
             call_stat = compute_call_stat(
                 current_price,
