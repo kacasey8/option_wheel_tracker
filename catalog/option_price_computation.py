@@ -222,15 +222,12 @@ def compute_call_stat(
     odds = call_with_implied_volatility.callDelta
     total_days_to_expiry = days_to_expiry + days_active_so_far
     success_rate_of_return = (1 + max_profit_decimal) ** (odds * BUSINESS_DAYS_IN_YEAR / total_days_to_expiry)
-    # In the case that we keep the stock, one choice is to sell the stock on the open market right after
-    # We'll assume the stock price decays at a slow rate, of at most .1% loss each day.
+    # In the case that we keep the stock, we assume that we'll sell on the open market right after
+    # We'll assume the stock price decays at a rate of at most 1% loss each day.
     failure_rate_of_return = 1 + (effective_price + float(revenue) + current_price * (0.99 ** days_to_expiry) - float(collateral)) / float(collateral)
-    # If this is profitable, we'll repeat it the rest of the year
-    # if not, we'll assume it takes the rest of the year to recover, but that we can secure a net equal return
-    if failure_rate_of_return > 1:
-        failure_rate_of_return = failure_rate_of_return ** (BUSINESS_DAYS_IN_YEAR / total_days_to_expiry)
-    else:
-        failure_rate_of_return = max([0.9, failure_rate_of_return])
+    # to reward quick exit, we assume once we exit we can obtain the fairly neutral rate of 1.5x annualized
+    # for the rest of the year.
+    failure_rate_of_return = failure_rate_of_return * (1.5 ** ((BUSINESS_DAYS_IN_YEAR - total_days_to_expiry) / BUSINESS_DAYS_IN_YEAR))
     annualized_rate_of_return = odds * success_rate_of_return + (1 - odds) * failure_rate_of_return
     stats = {
         "strike": strike,
