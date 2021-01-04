@@ -4,22 +4,26 @@ $(document).ready(function () {
   table.columns().every( function () {        
     columnNames.push(this.header().innerHTML);
   });
-  const returnIndex = columnNames.indexOf('Annualized Rate Of Return');
+  const annualizedReturnIndex = columnNames.indexOf('Annualized Rate Of Return');
+  const maximumReturnIndex = columnNames.indexOf('Maximum Return %');
   let oddsIndex = columnNames.indexOf('Odds Out Of The Money %');
   if (oddsIndex === -1) {
     oddsIndex = columnNames.indexOf('Odds Lose Stock');
   }
   table
-    .order( [ returnIndex, 'desc' ] )
+    .order( [ annualizedReturnIndex, 'desc' ] )
     .draw();
 
   $.fn.dataTable.ext.search.push(
     function( settings, data, dataIndex ) {
       const min = parseInt( $('#min_otm').val() || $('#min_itm_call').val() , 10 );
       const oddsNoStock = parseFloat( data[oddsIndex] ) || 0;
-      const returnRate = parseFloat(data[returnIndex].slice(0, -1)) || 1;
-      if (returnRate < 1 && $('#avoid_negative_returns').is(":checked")) {
-        return false;
+      if ($('#avoid_negative_returns').is(":checked")) {
+        // remove the % at the end with slice
+        const maximumReturnRate = parseFloat(data[maximumReturnIndex].slice(0, -1)) || 0;
+        if (maximumReturnRate < 0) {
+          return false;
+        }
       }
       if (isNaN(min) || (oddsNoStock > min)) {
         return true;
