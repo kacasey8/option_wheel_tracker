@@ -9,6 +9,7 @@
 
   <h2>Active</h2>
   {% if wheels.active_wheels %}
+    {% include 'base_wheel_table.html' with wheels=wheels.active_wheels %}
       <ul>
         {% for wheel in wheels.active_wheels %}
           <li>

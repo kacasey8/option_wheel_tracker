@@ -1,0 +1,28 @@
+
+
+<div>
+  <table class="table wheel_data_table">
+    <thead>
+      <tr>
+        <th>Ticker</th>
+        <th>Quantity</th>
+        <th>Strike</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in wheels %}
+        <tr>
+          <td>
+            {{ row.stock_ticker }}
+          </td>
+          <td>
+            {{ row.quantity }}
+          </td>
+          <td>
+            {{ row }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
