@@ -92,13 +92,25 @@ class OptionWheelListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user = self.request.user
-        active = OptionWheel.objects.filter(user=user, is_active=True)
-        active_sorted = sorted(active, key=lambda x: x.get_open_date(), reverse=True)
-        completed = OptionWheel.objects.filter(user=user, is_active=False)
-        completed_sorted = sorted(completed, key=lambda x: x.get_open_date(), reverse=True)
+
+        wheels = OptionWheel.objects.filter(user=user)
+        sorted_wheels = sorted(wheels, key=lambda x: x.get_expiration_date(), reverse=True)
+
+        expired = []
+        active = []
+        completed = []
+        for wheel in sorted_wheels:
+            if (wheel.is_expired()):
+                expired.append(wheel)
+            elif (wheel.is_active):
+                active.append(wheel)
+            else:
+                completed.append(wheel)
+
         queryset = {
-            'active_wheels': active_sorted, 
-            'completed_wheels': completed_sorted,
+            'expired_wheels': expired,
+            'active_wheels': active, 
+            'completed_wheels': completed,
         }
         return queryset
 

@@ -5,6 +5,8 @@ from django.urls import reverse
 
 from datetime import datetime
 
+MARKET_CLOSE_HOUR = 13
+
 
 class StockTicker(models.Model):
     """Represents a publicly traded stock symbol"""
@@ -89,6 +91,21 @@ class OptionWheel(models.Model):
         if first:
             return first.purchase_date.date()
         return datetime.min.date()
+
+    def get_expiration_date(self):
+        purchases = self.get_all_option_purchases()
+        if purchases:
+            return purchases[0].expiration_date
+        return datetime.max.date()
+
+    def is_expired(self):
+        if not self.is_active:
+            return False
+        now = datetime.now()
+        today = now.date()
+        if now.hour >= MARKET_CLOSE_HOUR:
+            return self.get_expiration_date() <= today
+        return self.get_expiration_date() < today
 
     def get_cost_basis(self):
         purchases = self.get_all_option_purchases()
