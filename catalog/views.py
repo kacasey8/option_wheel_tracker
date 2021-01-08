@@ -94,7 +94,7 @@ class OptionWheelListView(LoginRequiredMixin, generic.ListView):
         user = self.request.user
 
         wheels = OptionWheel.objects.filter(user=user)
-        sorted_wheels = sorted(wheels, key=lambda x: x.get_expiration_date(), reverse=True)
+        sorted_wheels = sorted(wheels, key=lambda x: (x.get_expiration_date(), x.get_open_date()), reverse=True)
 
         expired = []
         active = []
