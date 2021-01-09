@@ -146,6 +146,10 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         # there being no legitimate bids, and we need to skip, since mibian will lag out
         # if it attempts to compute this
         return None
+    if effective_price > last_price + 10 or effective_price < last_price - 10:
+        # The price seems pretty stale. We should avoid computation since mibian's computation
+        # will tend to time out in this case.
+        return None
     put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real put price
     # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
@@ -210,6 +214,10 @@ def compute_call_stat(
         # to just sell the stock on the open market in this case. This is probably from
         # there being no legitimate bids, and we need to skip, since mibian will lag out
         # if it attempts to compute this
+        return None
+    if effective_price > last_price + 10 or effective_price < last_price - 10:
+        # The price seems pretty stale. We should avoid computation since mibian's computation
+        # will tend to time out in this case.
         return None
     call_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], callPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real call price
