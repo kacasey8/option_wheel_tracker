@@ -45,7 +45,7 @@ def global_put_comparison(request):
     context = {}
     put_stats = []
     for stock_ticker in StockTicker.objects.all():
-        put_stats += get_put_stats_for_ticker(stock_ticker.name, maximum_option_days=4)['put_stats']
+        put_stats += get_put_stats_for_ticker(stock_ticker.name, maximum_option_days=3, options_per_day_to_consider=3)['put_stats']
     context['put_stats'] = sorted(put_stats, key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
     return render(request, 'global_put_comparison.html', context=context)
 
@@ -92,13 +92,25 @@ class OptionWheelListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user = self.request.user
-        active = OptionWheel.objects.filter(user=user, is_active=True)
-        active_sorted = sorted(active, key=lambda x: x.get_open_date(), reverse=True)
-        completed = OptionWheel.objects.filter(user=user, is_active=False)
-        completed_sorted = sorted(completed, key=lambda x: x.get_open_date(), reverse=True)
+
+        wheels = OptionWheel.objects.filter(user=user)
+        sorted_wheels = sorted(wheels, key=lambda x: (x.get_expiration_date(), x.get_open_date()), reverse=True)
+
+        expired = []
+        active = []
+        completed = []
+        for wheel in sorted_wheels:
+            if (wheel.is_expired()):
+                expired.append(wheel)
+            elif (wheel.is_active):
+                active.append(wheel)
+            else:
+                completed.append(wheel)
+
         queryset = {
-            'active_wheels': active_sorted, 
-            'completed_wheels': completed_sorted,
+            'expired_wheels': expired,
+            'active_wheels': active, 
+            'completed_wheels': completed,
         }
         return queryset
 
@@ -163,7 +175,8 @@ def complete_wheel(request, pk):
             first_purchase.purchase_date.date(),
             last_purchase.expiration_date,
         )
-        max_collatoral = max(purchase.strike for purchase in purchases)
+        puts = [p for p in purchases if p.call_or_put == 'P']
+        max_collatoral = max(p.strike for p in puts)
 
         option_wheel.total_profit = profit
         option_wheel.total_days_active = bus_days

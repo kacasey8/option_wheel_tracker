@@ -48,7 +48,7 @@ def get_yfinance_history(ticker_name):
     }
 
 # only look at the 10 closest option days, so about 2 months weekly options
-def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
+def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_day_to_consider=10):
     yfinance_history = get_yfinance_history(ticker_name)
     if yfinance_history is None:
         return {'put_stats': [], 'current_price': None}
@@ -66,7 +66,7 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10):
         otm_threshold_index = interesting_indicies[0]
         # interesting defined as the 10 highest OTM puts (price is below strike price)
         # For our strategies, we don't particularly want to acquire the stock, so we sell OTM
-        interesting_puts = puts[max(otm_threshold_index - 10, 0):otm_threshold_index]
+        interesting_puts = puts[max(otm_threshold_index - options_per_day_to_consider, 0):otm_threshold_index]
         option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
         # add one to business days since it includes the current day too
         days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
@@ -146,11 +146,20 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         # there being no legitimate bids, and we need to skip, since mibian will lag out
         # if it attempts to compute this
         return None
+    if effective_price > last_price * 1.1 or effective_price < last_price * 0.9:
+        # The price seems pretty stale. We should avoid computation since mibian's computation
+        # will tend to time out in this case.
+        return None
+    import time
+    start_time = time.time()
     put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real put price
     # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
     implied_volatility = put_implied_volatility_calculator.impliedVolatility
     put_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
+    end_time = time.time()
+    if (end_time - start_time > 0.1):
+        print(interesting_put)
     max_profit_decimal = effective_price / strike
     stats = {
         "strike": strike,
@@ -210,6 +219,10 @@ def compute_call_stat(
         # to just sell the stock on the open market in this case. This is probably from
         # there being no legitimate bids, and we need to skip, since mibian will lag out
         # if it attempts to compute this
+        return None
+    if effective_price > last_price * 1.1 or effective_price < last_price * 0.9:
+        # The price seems pretty stale. We should avoid computation since mibian's computation
+        # will tend to time out in this case.
         return None
     call_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], callPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real call price
