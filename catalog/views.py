@@ -175,7 +175,8 @@ def complete_wheel(request, pk):
             first_purchase.purchase_date.date(),
             last_purchase.expiration_date,
         )
-        max_collatoral = max(purchase.strike for purchase in purchases)
+        puts = [p for p in purchases if p.call_or_put == 'P']
+        max_collatoral = max(p.strike for p in puts)
 
         option_wheel.total_profit = profit
         option_wheel.total_days_active = bus_days
