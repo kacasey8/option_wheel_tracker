@@ -5,10 +5,10 @@
   <table class="display compact wheel_table" style="width:100%">
     <thead>
       <tr>
-        <th>Ticker</th>
-        <th>Quantity</th>
         <th>Exp. Date</th>
         <th>Last Purchase</th>
+        <th>Ticker</th>
+        <th>Quantity</th>
         <th>Open Date</th>
         <th>Open Strike</th>
         <th>Cost Basis</th>
@@ -27,12 +27,6 @@
       {% for row in wheels %}
         <tr>
           <td>
-            {{ row.stock_ticker }}
-          </td>
-          <td>
-            {{ row.quantity }}
-          </td>
-          <td>
             {{ row.expiration_date }}
             {% if row.expired %}
               <span class="badge badge-pill badge-warning">Expired</span>
@@ -40,6 +34,12 @@
           </td>
           <td>
             ${{ row.last_purchase.strike }} {{ row.last_purchase.call_or_put | call_or_put }}
+          </td>
+          <td>
+            {{ row.stock_ticker }}
+          </td>
+          <td>
+            {{ row.quantity }}
           </td>
           <td>
             {{ row.open_date }}
