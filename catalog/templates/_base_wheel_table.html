@@ -9,12 +9,10 @@
         <th>Last Purchase</th>
         <th>Ticker</th>
         <th>Quantity</th>
-        {% if not completed %}
-          <th>Last Price</th>
-        {% endif %}
+        <th>Last Price</th>
+        <th>Cost Basis</th>
         <th>Open Date</th>
         <th>Open Strike</th>
-        <th>Cost Basis</th>
         <th>Profit{% if not completed %} (if exits){% endif %}</th>
         <th>Return Rate{% if not completed %} (if exits){% endif %}</th>
         <th>Annual Rate{% if not completed %} (if exits){% endif %}</th>
@@ -44,19 +42,17 @@
           <td>
             {{ row.quantity }}
           </td>
-          {% if not completed %}
-            <td>
-              {{ row.current_price | floatformat:2 }}
-            </td>
-          {% endif %}
+          <td>
+            ${{ row.current_price | floatformat:2 }}
+          </td>
+          <td>
+            ${{ row.cost_basis }}
+          </td>
           <td>
             {{ row.open_date }}
           </td>
           <td>
             ${{ row.open_strike }}
-          </td>
-          <td>
-            ${{ row.cost_basis }}
           </td>
           <td>
             ${{ row.profit_if_exits_here }}
