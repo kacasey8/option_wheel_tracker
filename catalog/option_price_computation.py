@@ -11,6 +11,8 @@ BUSINESS_DAYS_IN_YEAR = 252
 # Some stats on yahoo finance are only based on a few stray trades, so we need to remove those
 # because these are false
 MINIMUM_VOLUME = 20
+IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.05
+IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.95
 
 # For puts, we assume that when we fail we get a rate of return of 1x. For calls
 # we assume we just miss out on the profits of the last strike, but everything else has already
@@ -140,7 +142,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         effective_price = bid
     if effective_price == 0:
         return None
-    if strike > current_price + effective_price:
+    if strike > (current_price * IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT) + effective_price:
         # this option has no intrinsic value, since it would be more efficient
         # to just buy the stock on the open market in this case. This is probably from
         # there being no legitimate bids, and we need to skip, since mibian will lag out
@@ -214,7 +216,7 @@ def compute_call_stat(
         effective_price = bid
     if effective_price == 0:
         return None
-    if strike + effective_price < current_price:
+    if strike + effective_price < current_price * IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL:
         # this option has no intrinsic value, since it would be more efficient
         # to just sell the stock on the open market in this case. This is probably from
         # there being no legitimate bids, and we need to skip, since mibian will lag out
@@ -229,9 +231,9 @@ def compute_call_stat(
     # Yahoo's volatility in interesting_call.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
     implied_volatility = call_implied_volatility_calculator.impliedVolatility
     call_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
+
     proposed_strike_difference_proceeds = strike - float(collateral)
     max_profit_decimal = (proposed_strike_difference_proceeds + effective_price + float(revenue)) / float(collateral)
-
     odds = call_with_implied_volatility.callDelta
     total_days_to_expiry = days_to_expiry + days_active_so_far
     success_rate_of_return = (1 + max_profit_decimal) ** (odds * BUSINESS_DAYS_IN_YEAR / total_days_to_expiry)
