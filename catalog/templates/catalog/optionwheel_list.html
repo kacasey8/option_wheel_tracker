@@ -7,20 +7,6 @@
   <br>
   <br>
 
-  {% if wheels.expired_wheels %}
-    <h2>
-      Expired
-      <span class="badge badge-pill badge-warning">Action required!</span>
-    </h2>
-      <ul>
-        {% for wheel in wheels.expired_wheels %}
-          <li>
-            <a href="{{ wheel.get_absolute_url }}">{{ wheel }}</a>
-          </li>
-        {% endfor %}
-      </ul>
-  {% endif %}
-
   <h2>Active</h2>
   {% if wheels.active_wheels %}
     {% include '_base_wheel_table.html' with wheels=wheels.active_wheels %}

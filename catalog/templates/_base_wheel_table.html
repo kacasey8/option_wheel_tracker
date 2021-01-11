@@ -8,13 +8,17 @@
         <th>Ticker</th>
         <th>Quantity</th>
         <th>Exp. Date</th>
+        <th>Current Position</th>
         <th>Open Date</th>
+        <th>Open Strike</th>
         <th>Cost Basis</th>
         <th>Profit (if exits)</th>
         <th>Return Rate (if exits)</th>
         <th>Annual Rate (if exits)</th>
-        <th>Details</th>
-        <th>Edit</th>
+        <th>Add Call</th>
+        <th>Mark Expired</th>
+        <th>Wheel Details</th>
+        <th>Edit Wheel</th>
       </tr>
     </thead>
     <tbody>
@@ -28,21 +32,36 @@
           </td>
           <td>
             {{ row.expiration_date }}
+            {% if row.expired %}
+              <span class="badge badge-pill badge-warning">Expired</span>
+            {% endif %}
+          </td>
+          <td>
+            ${{ row.last_purchase.strike }} {{ row.last_purchase.call_or_put | call_or_put }}
           </td>
           <td>
             {{ row.open_date }}
           </td>
           <td>
-            {{ row.cost_basis }}
+            ${{ row.open_strike }}
           </td>
           <td>
-            {{ row.profit_if_exits_here }}
+            ${{ row.cost_basis }}
+          </td>
+          <td>
+            ${{ row.profit_if_exits_here }}
           </td>
           <td>
             {{ row.decimal_rate_of_return | percentage }}
           </td>
           <td>
             {{ row.annualized_rate_of_return_if_exits_here | floatformat:2 }}x
+          </td>
+          <td>
+            <a type="button" class="btn btn-primary btn-sm" href="{% url 'purchase-create' wheel_id=row.pk %}">Call</a>
+          </td>
+          <td>
+            <a type="button" class="btn btn-success btn-sm" href="{% url 'wheel-complete' pk=row.pk %}">Expire</a>
           </td>
           <td>
             <a type="button" class="btn btn-secondary btn-sm" href="{% url 'wheel-detail' pk=row.pk %}">Details</a>
