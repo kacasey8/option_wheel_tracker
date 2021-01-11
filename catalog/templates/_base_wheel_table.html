@@ -1,12 +1,20 @@
 
+{% load filter_tags %}
 
 <div>
-  <table class="table wheel_data_table">
+  <table id="option_wheel_table" class="display compact">
     <thead>
       <tr>
         <th>Ticker</th>
         <th>Quantity</th>
-        <th>Strike</th>
+        <th>Exp. Date</th>
+        <th>Open Date</th>
+        <th>Cost Basis</th>
+        <th>Profit (if exits)</th>
+        <th>Return Rate (if exits)</th>
+        <th>Annual Rate (if exits)</th>
+        <th>Details</th>
+        <th>Edit</th>
       </tr>
     </thead>
     <tbody>
@@ -19,7 +27,28 @@
             {{ row.quantity }}
           </td>
           <td>
-            {{ row.profit }}
+            {{ row.expiration_date }}
+          </td>
+          <td>
+            {{ row.open_date }}
+          </td>
+          <td>
+            {{ row.cost_basis }}
+          </td>
+          <td>
+            {{ row.profit_if_exits_here }}
+          </td>
+          <td>
+            {{ row.decimal_rate_of_return | percentage }}
+          </td>
+          <td>
+            {{ row.annualized_rate_of_return_if_exits_here | floatformat:2 }}x
+          </td>
+          <td>
+            <a type="button" class="btn btn-secondary btn-sm" href="{% url 'wheel-detail' pk=row.pk %}">Details</a>
+          </td>
+          <td>
+            <a type="button" class="btn btn-primary btn-sm" href="{% url 'wheel-update' pk=row.pk %}">Edit</a>
           </td>
         </tr>
       {% endfor %}

@@ -100,6 +100,7 @@ class OptionWheelListView(LoginRequiredMixin, generic.ListView):
         active = []
         completed = []
         for wheel in sorted_wheels:
+            wheel.add_purchase_data()
             if (wheel.is_expired()):
                 expired.append(wheel)
             elif (wheel.is_active):
@@ -165,8 +166,8 @@ def complete_wheel(request, pk):
 
     option_wheel.is_active = False
     if purchases:
-        last_purchase = purchases[0]
-        first_purchase = purchases[len(purchases) - 1]
+        last_purchase = option_wheel.get_last_option_purchase()
+        first_purchase = option_wheel.get_first_option_purchase()
 
         premiums = sum(purchase.premium for purchase in purchases)
         profit = premiums + last_purchase.strike - first_purchase.strike
