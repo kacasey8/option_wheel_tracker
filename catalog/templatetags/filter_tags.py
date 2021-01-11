@@ -18,8 +18,15 @@ def divide(value, arg):
 
 @register.filter
 def multiply(value, arg):
-    print(value, arg)
     try:
         return float(value) * float(arg)
     except (ValueError, TypeError):
         return None
+
+@register.filter
+def call_or_put(value):
+    if value == 'P':
+        return 'Put'
+    elif value == 'C':
+        return 'Call'
+    return value

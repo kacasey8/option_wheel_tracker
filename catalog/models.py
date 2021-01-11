@@ -4,6 +4,12 @@ from django.conf import settings
 from django.urls import reverse
 
 from datetime import datetime
+from .option_price_computation import (
+    compute_annualized_rate_of_return,
+    get_current_price
+)
+
+import numpy
 
 MARKET_CLOSE_HOUR = 13
 
@@ -93,9 +99,9 @@ class OptionWheel(models.Model):
         return datetime.min.date()
 
     def get_expiration_date(self):
-        purchases = self.get_all_option_purchases()
-        if purchases:
-            return purchases[0].expiration_date
+        last_purchase = self.get_last_option_purchase()
+        if last_purchase:
+            return last_purchase.expiration_date
         return datetime.max.date()
 
     def is_expired(self):
@@ -121,16 +127,46 @@ class OptionWheel(models.Model):
             return 'N/A'
         return sum(purchase.premium for purchase in purchases)
 
-    def __str__(self):
+    def add_purchase_data(self):
         purchases = self.get_all_option_purchases()
+        if purchases:
+            cost_basis = self.get_cost_basis()
+            first_purchase = self.get_first_option_purchase()
+            last_purchase = self.get_last_option_purchase()
+            profit_if_exits_here = last_purchase.strike - cost_basis
+
+            days_active_so_far = numpy.busday_count(
+                first_purchase.purchase_date.date(),
+                last_purchase.expiration_date,
+            )
+            decimal_rate_of_return = float(profit_if_exits_here / first_purchase.strike)
+            annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(decimal_rate_of_return, 1, days_active_so_far)
+
+            self.cost_basis = cost_basis
+            self.profit_if_exits_here = profit_if_exits_here
+            self.days_active_so_far = days_active_so_far
+            self.decimal_rate_of_return = decimal_rate_of_return
+            self.annualized_rate_of_return_if_exits_here = annualized_rate_of_return_if_exits_here
+
+            self.open_date = self.get_open_date().strftime('%m/%d')
+            self.open_strike = first_purchase.strike
+
+            self.expiration_date = self.get_expiration_date().strftime('%m/%d')
+            self.last_purchase = last_purchase
+
+            self.expired = self.is_expired()
+            self.current_price = get_current_price(self.stock_ticker.name)
+
+
+    def __str__(self):
+        last_purchase = self.get_last_option_purchase()
         quantity_str = f"({self.quantity}X) " if self.quantity > 1 else ""
-        if not purchases:
+        if not last_purchase:
             return f"{quantity_str}{str(self.stock_ticker)}"
-        last_purchase = purchases[0]
         strike = last_purchase.strike
         call_or_put = last_purchase.call_or_put
         open_date = self.get_open_date().strftime('%m/%d')
-        exp_date = last_purchase.expiration_date.strftime('%m/%d')
+        exp_date = self.get_expiration_date().strftime('%m/%d')
         return f"{quantity_str}${strike} {call_or_put} {str(self.stock_ticker)} (opened {open_date}, exp. {exp_date})"
 
     def get_absolute_url(self):

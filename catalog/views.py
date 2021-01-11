@@ -8,11 +8,10 @@ from django.views import generic
 from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm
 from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
-from datetime import datetime, timedelta, date
+from datetime import timedelta
 
 from .option_price_computation import (
     get_current_price,
-    compute_put_stat,
     get_put_stats_for_ticker,
     compute_annualized_rate_of_return,
     get_call_stats_for_option_wheel
@@ -92,23 +91,18 @@ class OptionWheelListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user = self.request.user
-
         wheels = OptionWheel.objects.filter(user=user)
-        sorted_wheels = sorted(wheels, key=lambda x: (x.get_expiration_date(), x.get_open_date()), reverse=True)
 
-        expired = []
         active = []
         completed = []
-        for wheel in sorted_wheels:
-            if (wheel.is_expired()):
-                expired.append(wheel)
-            elif (wheel.is_active):
+        for wheel in wheels:
+            wheel.add_purchase_data()
+            if (wheel.is_active):
                 active.append(wheel)
             else:
                 completed.append(wheel)
 
         queryset = {
-            'expired_wheels': expired,
             'active_wheels': active, 
             'completed_wheels': completed,
         }
@@ -160,8 +154,8 @@ def complete_wheel(request, pk):
 
     option_wheel.is_active = False
     if purchases:
-        last_purchase = purchases[0]
-        first_purchase = purchases[len(purchases) - 1]
+        last_purchase = option_wheel.get_last_option_purchase()
+        first_purchase = option_wheel.get_first_option_purchase()
 
         premiums = sum(purchase.premium for purchase in purchases)
         profit = premiums + last_purchase.strike - first_purchase.strike

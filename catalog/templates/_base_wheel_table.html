@@ -1,0 +1,84 @@
+
+{% load filter_tags %}
+
+<div>
+  <table class="display compact wheel_table" style="width:100%">
+    <thead>
+      <tr>
+        <th>Exp. Date</th>
+        <th>Last Purchase</th>
+        <th>Ticker</th>
+        <th>Quantity</th>
+        <th>Last Price</th>
+        <th>Cost Basis</th>
+        <th>Open Date</th>
+        <th>Open Strike</th>
+        <th>Profit{% if not completed %} (if exits){% endif %}</th>
+        <th>Return Rate{% if not completed %} (if exits){% endif %}</th>
+        <th>Annual Rate{% if not completed %} (if exits){% endif %}</th>
+        <th>Wheel Details</th>
+        {% if not completed %}
+          <th>Add Call</th>
+          <th>Complete Wheel</th>
+          <th>Edit Wheel</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in wheels %}
+        <tr>
+          <td>
+            {{ row.expiration_date }}
+            {% if row.expired %}
+              <span class="badge badge-pill badge-warning">Expired</span>
+            {% endif %}
+          </td>
+          <td>
+            ${{ row.last_purchase.strike }} {{ row.last_purchase.call_or_put | call_or_put }}
+          </td>
+          <td>
+            {{ row.stock_ticker }}
+          </td>
+          <td>
+            {{ row.quantity }}
+          </td>
+          <td>
+            ${{ row.current_price | floatformat:2 }}
+          </td>
+          <td>
+            ${{ row.cost_basis }}
+          </td>
+          <td>
+            {{ row.open_date }}
+          </td>
+          <td>
+            ${{ row.open_strike }}
+          </td>
+          <td>
+            ${{ row.profit_if_exits_here }}
+          </td>
+          <td>
+            {{ row.decimal_rate_of_return | percentage }}
+          </td>
+          <td>
+            {{ row.annualized_rate_of_return_if_exits_here | floatformat:2 }}x
+          </td>
+          <td>
+            <a type="button" class="btn btn-secondary btn-sm" href="{% url 'wheel-detail' pk=row.pk %}">Details</a>
+          </td>
+          {% if not completed %}
+            <td>
+              <a type="button" class="btn btn-primary btn-sm" href="{% url 'purchase-create' wheel_id=row.pk %}">Call</a>
+            </td>
+            <td>
+              <a type="button" class="btn btn-success btn-sm" href="{% url 'wheel-complete' pk=row.pk %}">Complete</a>
+            </td>
+            <td>
+              <a type="button" class="btn btn-info btn-sm" href="{% url 'wheel-update' pk=row.pk %}">Edit</a>
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
