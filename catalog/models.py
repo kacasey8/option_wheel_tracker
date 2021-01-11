@@ -131,7 +131,6 @@ class OptionWheel(models.Model):
         purchases = self.get_all_option_purchases()
         if purchases:
             cost_basis = self.get_cost_basis()
-            expired = self.is_expired()
             first_purchase = self.get_first_option_purchase()
             last_purchase = self.get_last_option_purchase()
             profit_if_exits_here = last_purchase.strike - cost_basis
@@ -144,7 +143,6 @@ class OptionWheel(models.Model):
             annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(decimal_rate_of_return, 1, days_active_so_far)
 
             self.cost_basis = cost_basis
-            self.expired = expired
             self.profit_if_exits_here = profit_if_exits_here
             self.days_active_so_far = days_active_so_far
             self.decimal_rate_of_return = decimal_rate_of_return
@@ -156,6 +154,7 @@ class OptionWheel(models.Model):
             self.expiration_date = self.get_expiration_date().strftime('%m/%d')
             self.last_purchase = last_purchase
 
+            self.expired = self.is_expired()
             self.current_price = get_current_price(self.stock_ticker.name)
 
 

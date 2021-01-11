@@ -8,11 +8,10 @@ from django.views import generic
 from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm
 from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
-from datetime import datetime, timedelta, date
+from datetime import timedelta
 
 from .option_price_computation import (
     get_current_price,
-    compute_put_stat,
     get_put_stats_for_ticker,
     compute_annualized_rate_of_return,
     get_call_stats_for_option_wheel
