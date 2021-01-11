@@ -5,7 +5,7 @@ $(document).ready(function () {
     columnNames.push(this.header().innerHTML);
   });
   const annualizedReturnIndex = columnNames.indexOf('Annualized Rate Of Return');
-  const maximumReturnIndex = columnNames.indexOf('Maximum Return %');
+  const wheelTotalReturnIndex = columnNames.indexOf('Wheel Total Max Return %');
   let oddsIndex = columnNames.indexOf('Odds Out Of The Money %');
   if (oddsIndex === -1) {
     oddsIndex = columnNames.indexOf('Odds Lose Stock');
@@ -20,8 +20,8 @@ $(document).ready(function () {
       const oddsNoStock = parseFloat( data[oddsIndex] ) || 0;
       if ($('#avoid_negative_returns').is(":checked")) {
         // remove the % at the end with slice
-        const maximumReturnRate = parseFloat(data[maximumReturnIndex].slice(0, -1)) || 0;
-        if (maximumReturnRate < 0) {
+        const wheelTotalMaxReturnRate = parseFloat(data[wheelTotalReturnIndex].slice(0, -1)) || 0;
+        if (wheelTotalMaxReturnRate < 0) {
           return false;
         }
       }
@@ -43,6 +43,6 @@ $(document).ready(function () {
   $('#avoid_negative_returns').change( function() {
     table.draw();
   } );
-  $('#min_itm_call').val("30");
+  $('#min_itm_call').val("40");
   table.draw();
 });

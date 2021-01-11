@@ -27,9 +27,9 @@ the days to expiry</p>
       <th>Premium</th>
       <th>Calendar Days To Expiration</th>
       <th>Odds Lose Stock</th>
-      <th>Maximum Return %</th>
+      <th>Call Profit %</th>
       <th>Annualized Rate Of Return</th>
-      <th>Wheel Total Days To Expiry</th>
+      <th>Wheel Total Max Return %</th>
     </tr>
   </thead>
   <tbody>
@@ -51,13 +51,13 @@ the days to expiry</p>
           {{ call_stat.decimal_odds_out_of_the_money_implied | percentage }}
         </td>
         <td>
-          {{ call_stat.max_profit_decimal | percentage }}
+          {{ call_stat.call_max_profit_decimal | percentage }}
         </td>
         <td data-order={{ call_stat.annualized_rate_of_return_decimal }}>
           {{ call_stat.annualized_rate_of_return_decimal | floatformat:2 }}x
         </td>
         <td>
-          {{ call_stat.total_days_to_expiry }}
+          {{ call_stat.wheel_total_max_profit_decimal | percentage }}
         </td>
       </tr>
     {% endfor %}
