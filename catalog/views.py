@@ -94,7 +94,6 @@ class OptionWheelListView(LoginRequiredMixin, generic.ListView):
         user = self.request.user
         wheels = OptionWheel.objects.filter(user=user)
 
-        expired = []
         active = []
         completed = []
         for wheel in wheels:

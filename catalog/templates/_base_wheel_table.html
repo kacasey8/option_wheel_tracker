@@ -9,6 +9,9 @@
         <th>Last Purchase</th>
         <th>Ticker</th>
         <th>Quantity</th>
+        {% if not completed %}
+          <th>Last Price</th>
+        {% endif %}
         <th>Open Date</th>
         <th>Open Strike</th>
         <th>Cost Basis</th>
@@ -41,6 +44,11 @@
           <td>
             {{ row.quantity }}
           </td>
+          {% if not completed %}
+            <td>
+              {{ row.current_price | floatformat:2 }}
+            </td>
+          {% endif %}
           <td>
             {{ row.open_date }}
           </td>

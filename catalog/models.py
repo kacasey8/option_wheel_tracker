@@ -4,7 +4,10 @@ from django.conf import settings
 from django.urls import reverse
 
 from datetime import datetime
-from .option_price_computation import compute_annualized_rate_of_return
+from .option_price_computation import (
+    compute_annualized_rate_of_return,
+    get_current_price
+)
 
 import numpy
 
@@ -152,6 +155,8 @@ class OptionWheel(models.Model):
 
             self.expiration_date = self.get_expiration_date().strftime('%m/%d')
             self.last_purchase = last_purchase
+
+            self.current_price = get_current_price(self.stock_ticker.name)
 
 
     def __str__(self):
