@@ -140,11 +140,6 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
             )
             decimal_rate_of_return = float(profit_if_exits_here / first_purchase.strike)
             annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(decimal_rate_of_return, 1, days_active_so_far)
-            # days active so far basically assumes that if the last purchase is still ongoing
-            # that we'll be able to duplicate the current situation after the last purchase expires
-            if option_wheel.is_active:
-                call_stats = get_call_stats_for_option_wheel(option_wheel.stock_ticker.name, days_active_so_far, option_wheel.get_revenue(), collateral=first_purchase.strike)
-                context['call_stats'] = call_stats['call_stats']
         context['decimal_rate_of_return'] = decimal_rate_of_return
         context['profit_if_exits_here'] = profit_if_exits_here
         context['annualized_rate_of_return_if_exits_here'] = annualized_rate_of_return_if_exits_here
@@ -248,7 +243,7 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
             'expiration_date': _get_next_friday(),
             'call_or_put': call_or_put,
             'strike': first_strike,
-            'price_at_date': price_at_date
+            'price_at_date': price_at_date,
         }
 
     def get_context_data(self, **kwargs):
@@ -256,6 +251,15 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
         context['option_wheel'] = option_wheel
         context['cost_basis'] = option_wheel.get_cost_basis()
+        first_purchase = option_wheel.get_first_option_purchase()
+        if first_purchase is not None:
+            last_purchase = option_wheel.get_last_option_purchase()
+            days_active_so_far = numpy.busday_count(
+                first_purchase.purchase_date.date(),
+                last_purchase.expiration_date,
+            )
+            call_stats = get_call_stats_for_option_wheel(option_wheel.stock_ticker.name, days_active_so_far, option_wheel.get_revenue(), collateral=first_purchase.strike)
+            context['call_stats'] = call_stats['call_stats']
         return context
 
     def get_success_url(self):

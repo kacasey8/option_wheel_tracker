@@ -4,9 +4,8 @@
 holding onto the stock for awhile and continuing to reap premiums. Ideally the call lands
 in the money, thus selling our stock, and we repeat the wheel from scratch. Therefore, the
 only thing to maximize is annualized rate of return. By default we assume we need at least
-a 30% chance of selling the stock successfully, since we might not want to be holding this stock
-for too long</p>
-<p>Annualized rate of return is computed fairly bullish as (max_return * odds_otm + (1 - odds_otm)) ^ (252 / calendar_days_total_for_wheel). This assumes that if you keep the stock you will somehow recover over the course of the year for a neutral return of 1.</p>
+a 40% chance of selling the stock successfully, since we don't want to hold the stock indefinately</p>
+<p>Annualized rate of return is computed fairly bullish as (max_call_return * odds + (1 - odds)) ^ (252 / calendar_days). The assumes if you fail to sell the stock, you will be able to do something such that effectively get you a 1x return immediately. We use max call return assuming you just bought the stock on the market before making this call, so we avoid any profit/losses on the wheel when computing what to do here. However we make sure that the wheel as a whole will never go negative</p>
 <p>If you want to be more bearish on the stock, then you'll want to maximum the odds you can get rid of the stock. This will cut into your gains, but will make sure you can repeat the
 wheel process on a new stock quickly. In this strategy you would ignore annualized rate of return,
 set the minimum odds to a fairly high number such as 70, then sort by calendar days to minimize
@@ -27,7 +26,7 @@ the days to expiry</p>
       <th>Premium</th>
       <th>Calendar Days To Expiration</th>
       <th>Odds Lose Stock</th>
-      <th>Call Profit %</th>
+      <th>Max Call Profit %</th>
       <th>Annualized Rate Of Return</th>
       <th>Wheel Total Max Return %</th>
     </tr>
