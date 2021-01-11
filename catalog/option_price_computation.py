@@ -11,10 +11,11 @@ BUSINESS_DAYS_IN_YEAR = 252
 # Some stats on yahoo finance are only based on a few stray trades, so we need to remove those
 # because these are false
 MINIMUM_VOLUME = 20
+IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.01
+IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.99
 
-# For puts, we assume that when we fail we get a rate of return of 1x. For calls
-# we assume we just miss out on the profits of the last strike, but everything else has already
-# occured
+# We assume that when we fail (for a put we acquire stock, or call we keep stock)
+# we get a rate of return of 1x, which is profit_decimal_fail_case as 0
 def compute_annualized_rate_of_return(profit_decimal, odds, days, profit_decimal_fail_case=0):
     rate_of_return_success_case = 1 + profit_decimal
     rate_of_return_fail_case = 1 + profit_decimal_fail_case
@@ -140,7 +141,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         effective_price = bid
     if effective_price == 0:
         return None
-    if strike > current_price + effective_price:
+    if strike > (current_price * IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT) + effective_price:
         # this option has no intrinsic value, since it would be more efficient
         # to just buy the stock on the open market in this case. This is probably from
         # there being no legitimate bids, and we need to skip, since mibian will lag out
@@ -150,16 +151,11 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         # The price seems pretty stale. We should avoid computation since mibian's computation
         # will tend to time out in this case.
         return None
-    import time
-    start_time = time.time()
     put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real put price
     # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
     implied_volatility = put_implied_volatility_calculator.impliedVolatility
     put_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
-    end_time = time.time()
-    if (end_time - start_time > 0.1):
-        print(interesting_put)
     max_profit_decimal = effective_price / strike
     stats = {
         "strike": strike,
@@ -214,7 +210,7 @@ def compute_call_stat(
         effective_price = bid
     if effective_price == 0:
         return None
-    if strike + effective_price < current_price:
+    if strike + effective_price < current_price * IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL:
         # this option has no intrinsic value, since it would be more efficient
         # to just sell the stock on the open market in this case. This is probably from
         # there being no legitimate bids, and we need to skip, since mibian will lag out
@@ -229,26 +225,23 @@ def compute_call_stat(
     # Yahoo's volatility in interesting_call.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
     implied_volatility = call_implied_volatility_calculator.impliedVolatility
     call_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
-    proposed_strike_difference_proceeds = strike - float(collateral)
-    max_profit_decimal = (proposed_strike_difference_proceeds + effective_price + float(revenue)) / float(collateral)
 
+    proposed_strike_difference_proceeds = strike - float(collateral)
+    wheel_total_max_profit_decimal = (proposed_strike_difference_proceeds + effective_price + float(revenue)) / float(collateral)
+
+    # For computing the return of just this call, we ignore any previous profit/losses
+    # and assume we had to buy the stock at the current price
+    call_max_profit_decimal = (strike + effective_price - current_price) / current_price
     odds = call_with_implied_volatility.callDelta
-    total_days_to_expiry = days_to_expiry + days_active_so_far
-    success_rate_of_return = (1 + max_profit_decimal) ** (odds * BUSINESS_DAYS_IN_YEAR / total_days_to_expiry)
-    # In the case that we keep the stock, we assume that we'll sell on the open market right after
-    # We'll assume the stock price decays at a rate of at most 1% loss each day.
-    failure_rate_of_return = 1 + (effective_price + float(revenue) + current_price * (0.99 ** days_to_expiry) - float(collateral)) / float(collateral)
-    # to reward quick exit, we assume once we exit we can obtain the fairly neutral rate of 1.5x annualized
-    # for the rest of the year.
-    failure_rate_of_return = failure_rate_of_return * (1.5 ** ((BUSINESS_DAYS_IN_YEAR - total_days_to_expiry) / BUSINESS_DAYS_IN_YEAR))
-    annualized_rate_of_return = odds * success_rate_of_return + (1 - odds) * failure_rate_of_return
+
+    annualized_rate_of_return = compute_annualized_rate_of_return(call_max_profit_decimal, odds, days_to_expiry)
     stats = {
         "strike": strike,
         "price": effective_price,
         "expiration_date": expiration_date,
         "days_to_expiry": days_to_expiry,
-        "total_days_to_expiry": total_days_to_expiry,
-        "max_profit_decimal": max_profit_decimal,
+        "call_max_profit_decimal": call_max_profit_decimal,
+        "wheel_total_max_profit_decimal": wheel_total_max_profit_decimal,
         "decimal_odds_out_of_the_money_implied": odds,
         "annualized_rate_of_return_decimal": annualized_rate_of_return
     }
