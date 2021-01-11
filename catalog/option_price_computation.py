@@ -11,8 +11,8 @@ BUSINESS_DAYS_IN_YEAR = 252
 # Some stats on yahoo finance are only based on a few stray trades, so we need to remove those
 # because these are false
 MINIMUM_VOLUME = 20
-IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.05
-IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.95
+IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.02
+IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.98
 
 # We assume that when we fail (for a put we acquire stock, or call we keep stock)
 # we get a rate of return of 1x, which is profit_decimal_fail_case as 0

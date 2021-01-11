@@ -13,5 +13,7 @@
     </table>
     <input type="submit" value="Submit">
   </form>
-  {% include '_option_call_table.html' %}
+  {% if call_stats is not None %}
+    {% include '_option_call_table.html' %}
+  {% endif %}
 {% endblock %}
