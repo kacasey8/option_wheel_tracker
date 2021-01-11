@@ -2,23 +2,25 @@
 {% load filter_tags %}
 
 <div>
-  <table id="option_wheel_table" class="display compact">
+  <table class="display compact wheel_table" style="width:100%">
     <thead>
       <tr>
         <th>Ticker</th>
         <th>Quantity</th>
         <th>Exp. Date</th>
-        <th>Current Position</th>
+        <th>Last Purchase</th>
         <th>Open Date</th>
         <th>Open Strike</th>
         <th>Cost Basis</th>
-        <th>Profit (if exits)</th>
-        <th>Return Rate (if exits)</th>
-        <th>Annual Rate (if exits)</th>
-        <th>Add Call</th>
-        <th>Mark Expired</th>
+        <th>Profit{% if not completed %} (if exits){% endif %}</th>
+        <th>Return Rate{% if not completed %} (if exits){% endif %}</th>
+        <th>Annual Rate{% if not completed %} (if exits){% endif %}</th>
         <th>Wheel Details</th>
-        <th>Edit Wheel</th>
+        {% if not completed %}
+          <th>Add Call</th>
+          <th>Complete Wheel</th>
+          <th>Edit Wheel</th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
@@ -58,17 +60,19 @@
             {{ row.annualized_rate_of_return_if_exits_here | floatformat:2 }}x
           </td>
           <td>
-            <a type="button" class="btn btn-primary btn-sm" href="{% url 'purchase-create' wheel_id=row.pk %}">Call</a>
-          </td>
-          <td>
-            <a type="button" class="btn btn-success btn-sm" href="{% url 'wheel-complete' pk=row.pk %}">Expire</a>
-          </td>
-          <td>
             <a type="button" class="btn btn-secondary btn-sm" href="{% url 'wheel-detail' pk=row.pk %}">Details</a>
           </td>
-          <td>
-            <a type="button" class="btn btn-primary btn-sm" href="{% url 'wheel-update' pk=row.pk %}">Edit</a>
-          </td>
+          {% if not completed %}
+            <td>
+              <a type="button" class="btn btn-primary btn-sm" href="{% url 'purchase-create' wheel_id=row.pk %}">Call</a>
+            </td>
+            <td>
+              <a type="button" class="btn btn-success btn-sm" href="{% url 'wheel-complete' pk=row.pk %}">Complete</a>
+            </td>
+            <td>
+              <a type="button" class="btn btn-info btn-sm" href="{% url 'wheel-update' pk=row.pk %}">Edit</a>
+            </td>
+          {% endif %}
         </tr>
       {% endfor %}
     </tbody>
