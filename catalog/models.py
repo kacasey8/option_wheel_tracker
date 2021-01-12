@@ -16,7 +16,7 @@ MARKET_CLOSE_HOUR = 13
 
 class StockTicker(models.Model):
     """Represents a publicly traded stock symbol"""
-    name = models.CharField(max_length=200, help_text='Enter a ticker, like TSLA.', unique=True)
+    name = models.CharField(max_length=200, help_text='Enter a ticker, like TSLA.', unique=True, db_index=True)
 
     class StockRecommendation(models.TextChoices):
         NONE = 'NO', _('None')
@@ -40,10 +40,12 @@ class OptionPurchase(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        db_index=True,
     )
     option_wheel = models.ForeignKey(
         'OptionWheel',
         on_delete=models.CASCADE,
+        db_index=True,
     )
     purchase_date = models.DateTimeField()
     expiration_date = models.DateField()
@@ -72,13 +74,14 @@ class OptionWheel(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        db_index=True,
     )
     stock_ticker = models.ForeignKey(
         'StockTicker',
         on_delete=models.CASCADE,
     )
     quantity = models.IntegerField(default=1)
-    is_active = models.BooleanField()
+    is_active = models.BooleanField(db_index=True)
     total_profit = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
     total_days_active = models.IntegerField(default=None, null=True)
     collatoral = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
