@@ -4,7 +4,7 @@
 
 {% block content %}
   <h1>Option Wheel: {{ wheel }}</h1>
-  <a type="button" class="btn btn-primary" href="{% url 'wheels' %}">My Wheels</a>
+  <a type="button" class="btn btn-primary" href="{% url 'my-active-wheels' %}">My Active Wheels</a>
   <p>All computation is done per share on this page. Multiply profits and collateral by 100 * quantity, since each contract is 100 shares</p>
   <p>
     <strong>Cost Basis:</strong> ${{ wheel_data.cost_basis }}

@@ -23,9 +23,10 @@
           <li><a href="{% url 'index' %}">Home</a></li>
           <li><a href="{% url 'tickers' %}">All Stock Tickers</a></li>
           {% if user.is_authenticated %}
-            <li><a href="{% url 'wheels' %}">My Wheels</a></li>
-            <li><a href="{% url 'wheels-all-active' %}">All Active Wheels</a></li>
-            <li><a href="{% url 'wheels-all-completed' %}">All Completed Wheels</a></li>
+            <li><a href="{% url 'my-active-wheels' %}">My Active Wheels</a></li>
+            <li><a href="{% url 'my-completed-wheels' %}">My Completed Wheels</a></li>
+            <li><a href="{% url 'all-active-wheels' %}">All Active Wheels</a></li>
+            <li><a href="{% url 'all-completed-wheels' %}">All Completed Wheels</a></li>
             <li>User: {{ user.get_username }}</li>
             <li><a href="{% url 'logout'%}?next={{request.path}}">Logout</a></li>
           {% else %}

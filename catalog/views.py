@@ -83,47 +83,44 @@ class StockTickerDelete(generic.edit.DeleteView):
 
 
 # OptionWheel views
-class MyWheels(LoginRequiredMixin, generic.base.TemplateView):
-    template_name = 'catalog/my_wheels.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        wheels = OptionWheel.objects.filter(user=user)
+@login_required
+def my_active_wheels(request):
+    context = {}
+    wheels = OptionWheel.objects.filter(user=request.user, is_active=True)
+    for wheel in wheels:
+        wheel.add_purchase_data()
+    context["wheels"] = wheels
+    return render(request, 'my_active_wheels.html', context=context)
 
-        active = []
-        completed = []
-        for wheel in wheels:
-            wheel.add_purchase_data()
-            if (wheel.is_active):
-                active.append(wheel)
-            else:
-                completed.append(wheel)
-        context["active_wheels"] = active
-        context["completed_wheels"] = completed
-        return context
+@login_required
+def my_completed_wheels(request):
+    context = {}
+    wheels = OptionWheel.objects.filter(user=request.user, is_active=False)
+    for wheel in wheels:
+        wheel.add_purchase_data()
+    context["wheels"] = wheels
+    return render(request, 'my_completed_wheels.html', context=context)
 
-class AllActiveWheels(LoginRequiredMixin, generic.base.TemplateView):
-    template_name = 'catalog/all_active_wheels.html'
+@login_required
+def all_active_wheels(request):
+    context = {}
+    wheels = OptionWheel.objects.filter(is_active=True)
+    for wheel in wheels:
+        wheel.add_purchase_data()
+    context["wheels"] = wheels
+    return render(request, 'all_active_wheels.html', context=context)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        wheels = OptionWheel.objects.filter(is_active=True)
-        for wheel in wheels:
-            wheel.add_purchase_data()
-        context["active_wheels"] = wheels
-        return context
 
-class AllCompletedWheels(LoginRequiredMixin, generic.base.TemplateView):
-    template_name = 'catalog/all_completed_wheels.html'
+@login_required
+def all_completed_wheels(request):
+    context = {}
+    wheels = OptionWheel.objects.filter(is_active=False)
+    for wheel in wheels:
+        wheel.add_purchase_data()
+    context["wheels"] = wheels
+    return render(request, 'all_completed_wheels.html', context=context)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        wheels = OptionWheel.objects.filter(is_active=False)
-        for wheel in wheels:
-            wheel.add_purchase_data()
-        context["completed_wheels"] = wheels
-        return context
 
 class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
     model = OptionWheel
@@ -195,7 +192,7 @@ class OptionWheelUpdate(generic.edit.UpdateView):
 
 class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionWheel
-    success_url = reverse_lazy('wheels')
+    success_url = reverse_lazy('my-active-wheels')
 
 
 # OptionPurchase views
