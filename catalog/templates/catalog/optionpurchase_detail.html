@@ -2,7 +2,7 @@
 
 {% block content %}
   <h1>Option Purchase: {{ optionpurchase }}</h1>
-  <a href="{% url 'wheel-detail' pk=optionpurchase.option_wheel.pk %}">View Wheel</a>
+  <a type="button" class="btn btn-primary" href="{% url 'wheel-detail' pk=optionpurchase.option_wheel.pk %}">View Wheel</a>
   <p><strong>Purchase Date:</strong> {{ optionpurchase.purchase_date }}</p>
   <p><strong>Expiration Date:</strong> {{ optionpurchase.expiration_date }}</p>
 
@@ -11,6 +11,10 @@
   <p><strong>Price at Date:</strong> {{ optionpurchase.price_at_date }}</p>
   <p><strong>Type:</strong> {{ optionpurchase.call_or_put }}</p>
 
-  <a type="button" class="btn btn-primary" href="{% url 'purchase-update' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}">Edit</a>
-  <a type="button" class="btn btn-danger" href="{% url 'purchase-delete' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}" variant="danger">Delete</a>
+  {% if can_edit %}
+    <a type="button" class="btn btn-primary" href="{% url 'purchase-update' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}">Edit</a>
+    <a type="button" class="btn btn-danger" href="{% url 'purchase-delete' wheel_id=optionpurchase.option_wheel.pk pk=optionpurchase.pk %}" variant="danger">Delete</a>
+  {% else%}
+    <p><strong>User:</strong> {{ optionpurchase.user }}</p>
+  {% endif %}
 {% endblock %}

@@ -83,12 +83,11 @@ class StockTickerDelete(generic.edit.DeleteView):
 
 
 # OptionWheel views
-class OptionWheelListView(LoginRequiredMixin, generic.ListView):
-    model = OptionWheel
-    context_object_name = 'wheels'
-    template_name = 'catalog/optionwheel_list.html'
+class MyWheels(LoginRequiredMixin, generic.base.TemplateView):
+    template_name = 'catalog/my_wheels.html'
 
-    def get_queryset(self):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         user = self.request.user
         wheels = OptionWheel.objects.filter(user=user)
 
@@ -100,12 +99,31 @@ class OptionWheelListView(LoginRequiredMixin, generic.ListView):
                 active.append(wheel)
             else:
                 completed.append(wheel)
+        context["active_wheels"] = active
+        context["completed_wheels"] = completed
+        return context
 
-        queryset = {
-            'active_wheels': active, 
-            'completed_wheels': completed,
-        }
-        return queryset
+class AllActiveWheels(LoginRequiredMixin, generic.base.TemplateView):
+    template_name = 'catalog/all_active_wheels.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        wheels = OptionWheel.objects.filter(is_active=True)
+        for wheel in wheels:
+            wheel.add_purchase_data()
+        context["active_wheels"] = wheels
+        return context
+
+class AllCompletedWheels(LoginRequiredMixin, generic.base.TemplateView):
+    template_name = 'catalog/all_completed_wheels.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        wheels = OptionWheel.objects.filter(is_active=False)
+        for wheel in wheels:
+            wheel.add_purchase_data()
+        context["completed_wheels"] = wheels
+        return context
 
 class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
     model = OptionWheel
@@ -117,6 +135,7 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
 
         option_wheel.add_purchase_data()
         context["wheel_data"] = option_wheel
+        context["can_edit"] = option_wheel.user == self.request.user
         return context
 
 
@@ -182,6 +201,11 @@ class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
 # OptionPurchase views
 class OptionPurchaseDetailView(LoginRequiredMixin, generic.DetailView):
     model = OptionPurchase
+
+    def get_context_data(self, **kwargs):
+        context = super(OptionPurchaseDetailView, self).get_context_data(**kwargs)
+        context["can_edit"] = self.object.user == self.request.user
+        return context
 
 class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
     model = OptionPurchase

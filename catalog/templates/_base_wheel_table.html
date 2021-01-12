@@ -6,6 +6,9 @@
     <thead>
       <tr>
         <th>Exp. Date</th>
+        {% if all %}
+          <th>User</th>
+        {% endif %}
         <th>Last Purchase</th>
         <th>Ticker</th>
         <th>Quantity</th>
@@ -13,11 +16,11 @@
         <th>Cost Basis</th>
         <th>Open Date</th>
         <th>Open Strike</th>
-        <th>Profit{% if not completed %} (if exits){% endif %}</th>
-        <th>Return Rate{% if not completed %} (if exits){% endif %}</th>
-        <th>Annual Rate{% if not completed %} (if exits){% endif %}</th>
+        <th>Profit{% if active %} (if exits){% endif %}</th>
+        <th>Return Rate{% if active %} (if exits){% endif %}</th>
+        <th>Annual Rate{% if active %} (if exits){% endif %}</th>
         <th>Wheel Details</th>
-        {% if not completed %}
+        {% if active and not all %}
           <th>Add Call</th>
           <th>Complete Wheel</th>
           <th>Edit Wheel</th>
@@ -33,6 +36,11 @@
               <span class="badge badge-pill badge-warning">Expired</span>
             {% endif %}
           </td>
+          {% if all %}
+            <td>
+              {{ row.user }}
+            </td>
+          {% endif %}
           <td>
             ${{ row.last_purchase.strike }} {{ row.last_purchase.call_or_put | call_or_put }}
           </td>
@@ -66,7 +74,7 @@
           <td>
             <a type="button" class="btn btn-secondary btn-sm" href="{% url 'wheel-detail' pk=row.pk %}">Details</a>
           </td>
-          {% if not completed %}
+          {% if active and not all %}
             <td>
               <a type="button" class="btn btn-primary btn-sm" href="{% url 'purchase-create' wheel_id=row.pk %}">Call</a>
             </td>

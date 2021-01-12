@@ -8,15 +8,15 @@
   <br>
 
   <h2>Active</h2>
-  {% if wheels.active_wheels %}
-    {% include '_base_wheel_table.html' with wheels=wheels.active_wheels %}
+  {% if active_wheels %}
+    {% include '_base_wheel_table.html' with wheels=active_wheels active=True %}
   {% else %}
     <p>You have no active wheels</p>
   {% endif %}
 
   <h2>Completed</h2>
-  {% if wheels.completed_wheels %}
-    {% include '_base_wheel_table.html' with wheels=wheels.completed_wheels completed=True %}
+  {% if completed_wheels %}
+    {% include '_base_wheel_table.html' with wheels=completed_wheels %}
   {% else %}
     <p>You have no completed wheels</p>
   {% endif %} 

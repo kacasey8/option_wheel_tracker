@@ -1,0 +1,12 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>All Completed Wheels</h1>
+
+  {% if completed_wheels %}
+    {% include '_base_wheel_table.html' with wheels=completed_wheels all=True%}
+  {% else %}
+    <p>There are no completed wheels</p>
+  {% endif %}
+
+{% endblock %}
