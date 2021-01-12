@@ -11,7 +11,6 @@
         {% endif %}
         <th>Last Purchase</th>
         <th>Ticker</th>
-        <th>Quantity</th>
         <th>Last Price</th>
         <th>Cost Basis</th>
         <th>Open Date</th>
@@ -46,9 +45,9 @@
           </td>
           <td>
             {{ row.stock_ticker }}
-          </td>
-          <td>
-            {{ row.quantity }}
+            {% if row.quantity > 1 %}
+              ({{ row.quantity}}x)
+            {% endif %}
           </td>
           <td>
             ${{ row.current_price | floatformat:2 }}
@@ -68,7 +67,7 @@
           <td>
             {{ row.decimal_rate_of_return | percentage }}
           </td>
-          <td>
+          <td data-order={{ row.annualized_rate_of_return_if_exits_here }}>
             {{ row.annualized_rate_of_return_if_exits_here | floatformat:2 }}x
           </td>
           <td>
