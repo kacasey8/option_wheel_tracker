@@ -156,6 +156,7 @@ class OptionWheel(models.Model):
 
             self.expired = self.is_expired()
             self.current_price = get_current_price(self.stock_ticker.name)
+            self.purchases = purchases
 
 
     def __str__(self):

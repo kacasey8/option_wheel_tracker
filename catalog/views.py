@@ -13,7 +13,6 @@ from datetime import timedelta
 from .option_price_computation import (
     get_current_price,
     get_put_stats_for_ticker,
-    compute_annualized_rate_of_return,
     get_call_stats_for_option_wheel
 )
 
@@ -115,35 +114,9 @@ class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(OptionWheelDetailView, self).get_context_data(**kwargs)
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('pk'))
-        purchases = option_wheel.get_all_option_purchases()
-        cost_basis = option_wheel.get_cost_basis()
-        profit_if_exits_here = 'N/A'
-        annualized_rate_of_return_if_exits_here = 'N/A'
-        days_active_so_far = 'N/A'
-        decimal_rate_of_return = 'N/A'
-        expires = None
-        if purchases:
-            first_purchase = option_wheel.get_first_option_purchase()
-            last_purchase = option_wheel.get_last_option_purchase()
-            if last_purchase.expiration_date > timezone.now().date():
-                expires = last_purchase.expiration_date
-            profit_if_exits_here = last_purchase.strike - cost_basis
-            days_active_so_far = numpy.busday_count(
-                first_purchase.purchase_date.date(),
-                last_purchase.expiration_date,
-            )
-            decimal_rate_of_return = float(profit_if_exits_here / first_purchase.strike)
-            annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(decimal_rate_of_return, 1, days_active_so_far)
-        context['decimal_rate_of_return'] = decimal_rate_of_return
-        context['profit_if_exits_here'] = profit_if_exits_here
-        context['annualized_rate_of_return_if_exits_here'] = annualized_rate_of_return_if_exits_here
-        context['days_active_so_far'] = days_active_so_far
-        context['purchases'] = purchases
-        context['cost_basis'] = cost_basis
-        context['expires'] = expires
 
-        current_price = get_current_price(option_wheel.stock_ticker.name)
-        context['current_price'] = current_price
+        option_wheel.add_purchase_data()
+        context["wheel_data"] = option_wheel
         return context
 
 

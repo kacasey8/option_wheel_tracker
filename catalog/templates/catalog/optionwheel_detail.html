@@ -7,23 +7,23 @@
   <a type="button" class="btn btn-primary" href="{% url 'wheels' %}">My Wheels</a>
   <p>All computation is done per share on this page. Multiply profits and collateral by 100 * quantity, since each contract is 100 shares</p>
   <p>
-    <strong>Cost Basis:</strong> ${{ cost_basis }}
+    <strong>Cost Basis:</strong> ${{ wheel_data.cost_basis }}
     <strong>Quantity:</strong> {{ wheel.quantity }}
     <strong>Active:</strong> {{ wheel.is_active }}
   </p>
   {% if wheel.is_active %}
   <p>
     <div>
-      <strong>Profit If Exits Here:</strong> ${{ profit_if_exits_here }}
+      <strong>Profit If Exits Here:</strong> ${{ wheel_data.profit_if_exits_here }}
     </div>
     <div>
-      <strong>Rate Of Return If Exits Here:</strong> {{ decimal_rate_of_return | percentage }}
+      <strong>Rate Of Return If Exits Here:</strong> {{ wheel_data.decimal_rate_of_return | percentage }}
     </div>
     <div>
-      <strong>Annualized Rate Of Return If Exits Here:</strong> {{ annualized_rate_of_return_if_exits_here | floatformat:2 }}x
+      <strong>Annualized Rate Of Return If Exits Here:</strong> {{ wheel_data.annualized_rate_of_return_if_exits_here | floatformat:2 }}x
     </div>
     <div>
-      <strong>Days Active So Far:</strong> {{ days_active_so_far }}
+      <strong>Days Active So Far:</strong> {{ wheel_data.days_active_so_far }}
     </div>
   </p>
   {% endif %}
@@ -31,35 +31,38 @@
   <br>
 
   <p>
-    <strong>Current Price:</strong> ${{ current_price | floatformat:2 }}
+    <strong>Current Price:</strong> ${{ wheel_data.current_price | floatformat:2 }}
   </p>
 
-  {% if expires %}
-    <p><i class="text-danger">Warning: Set to expire on <strong>{{ expires | date:"m/d"}}</strong>. Check back then to take the next action.</i></p>
-  {% endif %}
+  <p>
+    <strong>Expiration Date:</strong> {{ wheel_data.expiration_date }}
+    {% if wheel_data.expired %}
+      <span class="badge badge-pill badge-warning">Expired</span>
+    {% endif %}
+  </p>
 
   <strong>Status:</strong>
   {% if wheel.is_active %}
-    {% if purchases %}
-      {% if expires %}<i> If expires now, </i>{% endif %}
-      {% if purchases.0.call_or_put == 'P' and current_price < purchases.0.strike %}
-        <span class="badge badge-pill badge-primary">Put {% if not expires %} Pending {% endif %} Assignment</span>
-      {% elif purchases.0.call_or_put == 'P' %}
-        <span class="badge badge-pill badge-success">Put {% if not expires %} Pending {% endif %} Expiration</span>
-      {% elif current_price < purchases.0.strike %}
-        <span class="badge badge-pill badge-primary">Call {% if not expires %} Pending {% endif %} Expiration</span>
+    {% if wheel_data.purchases %}
+      {% if not wheel_data.expired %}<i> If expires now, </i>{% endif %}
+      {% if wheel_data.purchases.0.call_or_put == 'P' and wheel_data.current_price < wheel_data.purchases.0.strike %}
+        <span class="badge badge-pill badge-primary">Put Assignment</span>
+      {% elif wheel_data.purchases.0.call_or_put == 'P' %}
+        <span class="badge badge-pill badge-success">Put Expiration</span>
+      {% elif wheel_data.current_price < wheel_data.purchases.0.strike %}
+        <span class="badge badge-pill badge-primary">Call Expiration</span>
       {% else%}
-        <span class="badge badge-pill badge-success">Call {% if not expires %} Pending {% endif %} Assignment</span>
+        <span class="badge badge-pill badge-success">Call Assignment</span>
       {% endif %}
       <div>
         <div class="card mt-2 d-inline-flex">
           <div class="card-body">
             <h5 class="card-title">Possible Actions</h5>
             <a type="button" class="btn btn-primary" href="{% url 'purchase-create' wheel_id=wheel.pk %}">
-              {% if purchases.0.call_or_put == 'P' %} Put Assigned {% else %} Call Expired {% endif %} - Add Call
+              {% if wheel_data.purchases.0.call_or_put == 'P' %} Put Assigned {% else %} Call Expired {% endif %} - Add Call
             </a>
             <a type="button" class="btn btn-success" href="{% url 'wheel-complete' pk=wheel.pk %}">
-              {% if purchases.0.call_or_put == 'P' %} Put Expired {% else %} Call Assigned {% endif %} - Complete Wheel
+              {% if wheel_data.purchases.0.call_or_put == 'P' %} Put Expired {% else %} Call Assigned {% endif %} - Complete Wheel
             </a>
           </div>
         </div>
@@ -73,13 +76,13 @@
   {% else %}
     <i> Complete.</i>
     <div>
-      <strong>Rate Of Return:</strong> {{ decimal_rate_of_return | percentage }}
+      <strong>Rate Of Return:</strong> {{ wheel_data.decimal_rate_of_return | percentage }}
     </div>
     <div>
       <strong>Total Days Active:</strong> {{ wheel.total_days_active }}
     </div>
     <div>
-      <strong>Annualized Rate Of Return:</strong> {{ annualized_rate_of_return_if_exits_here | floatformat:2 }}x
+      <strong>Annualized Rate Of Return:</strong> {{ wheel_data.annualized_rate_of_return_if_exits_here | floatformat:2 }}x
     </div>
     <div>
       <strong>Profit:</strong> ${{ wheel.total_profit }}
@@ -97,7 +100,7 @@
   <br>
 
   <ul>
-    {% for purchase in purchases %}
+    {% for purchase in wheel_data.purchases %}
       <li>
         <a href="{{ purchase.get_absolute_url }}">{{ purchase }}</a>
         Purchased on {{ purchase.purchase_date | date:"m/d" }} for
