@@ -1,6 +1,9 @@
 $(document).ready(function () {
+  const chart_item = $('#profit_collateral_chart').get(0);
+  if (chart_item == null) {
+    return;
+  }
   const ctx = $('#profit_collateral_chart').get(0).getContext("2d");
-  console.log(collateral_on_the_line_per_day)
   const data = collateral_on_the_line_per_day.sort().map((elem => {
     return {
       t: new Date(elem[0]),
