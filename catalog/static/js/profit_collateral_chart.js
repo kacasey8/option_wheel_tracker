@@ -44,11 +44,13 @@ $(document).ready(function () {
         xAxes: [{
           type: 'time',
           distribution: 'series',
+          offset: true,
         }],
         yAxes: [{
           id: 'A',
           type: 'linear',
           position: 'left',
+          label: 'a'
         }, {
           id: 'B',
           type: 'linear',
