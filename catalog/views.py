@@ -8,7 +8,8 @@ from django.views import generic
 from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm
 from catalog.models import OptionPurchase, StockTicker, OptionWheel
 
-from datetime import timedelta
+from datetime import timedelta, datetime
+from collections import defaultdict 
 
 from .option_price_computation import (
     get_current_price,
@@ -17,6 +18,8 @@ from .option_price_computation import (
 )
 
 import numpy
+import pandas
+import json
 
 from django.views.decorators.cache import cache_page
 
@@ -282,12 +285,16 @@ def my_total_profit(request):
     sum_days = 0
     wheel_count = 0
     no_quantity_wheel_count = 0
+    collateral_on_the_line_per_day = defaultdict(int)
     for wheel in wheels:
+        wheel_collateral = wheel.collateral * wheel.quantity
         total_profit += wheel.total_profit * wheel.quantity
-        total_collateral += wheel.collateral * wheel.quantity
+        total_collateral += wheel_collateral
         wheel_count += wheel.quantity
         sum_days += wheel.total_days_active * wheel.quantity
         no_quantity_wheel_count += 1
+        for day in pandas.bdate_range(wheel.get_open_date(), wheel.get_expiration_date()):
+            collateral_on_the_line_per_day[day.strftime('%Y-%m-%d')] += float(wheel_collateral)
     context["total_profit"] = total_profit
     context["total_collateral"] = total_collateral
     context["total_profit_dollars"] = total_profit * 100
@@ -296,4 +303,6 @@ def my_total_profit(request):
     context["return_percentage"] = total_profit / total_collateral
     context["total_wheel_count"] = wheel_count
     context["no_quantity_wheel_count"] = no_quantity_wheel_count
+    context["collateral_on_the_line_per_day"] = json.dumps(list(collateral_on_the_line_per_day.items()))
+    context["max_collateral"] = max(collateral_on_the_line_per_day.values())
     return render(request, 'my_total_profit.html', context=context)
