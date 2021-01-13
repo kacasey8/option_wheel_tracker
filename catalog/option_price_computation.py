@@ -27,7 +27,8 @@ def get_current_price(stockticker_name):
     yahoo_ticker_history = yahoo_ticker.history(period="1d")
     if yahoo_ticker_history.empty:
         return None
-    return yahoo_ticker_history.tail(1)['Close'].iloc[0]
+    result = yahoo_ticker_history.tail(1)['Close'].iloc[0]
+    return result
 
 def get_yfinance_history(ticker_name):
     yahoo_ticker = yfinance.Ticker(ticker_name)

@@ -18,6 +18,10 @@ from .option_price_computation import (
 
 import numpy
 
+from django.views.decorators.cache import cache_page
+
+ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 30
+
 def _get_next_friday():
     now = timezone.now()
     return now + timedelta((3 - now.weekday()) % 7 + 1)
@@ -103,6 +107,7 @@ def my_completed_wheels(request):
     return render(request, 'my_completed_wheels.html', context=context)
 
 @login_required
+@cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def all_active_wheels(request):
     context = {}
     wheels = OptionWheel.objects.filter(is_active=True)
@@ -113,6 +118,7 @@ def all_active_wheels(request):
 
 
 @login_required
+@cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def all_completed_wheels(request):
     context = {}
     wheels = OptionWheel.objects.filter(is_active=False)
@@ -264,3 +270,14 @@ class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
     def get_success_url(self):
         wheel_id = self.kwargs.get('wheel_id')
         return reverse('wheel-detail', args=[str(wheel_id)])
+
+## TOTAL PROFIT VIEWS
+
+@login_required
+def my_total_profit(request):
+    context = {}
+    wheels = OptionWheel.objects.filter(user=request.user, is_active=True)
+    for wheel in wheels:
+        wheel.add_purchase_data()
+    context["wheels"] = wheels
+    return render(request, 'my_active_wheels.html', context=context)
