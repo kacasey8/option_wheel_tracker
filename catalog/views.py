@@ -281,15 +281,19 @@ def my_total_profit(request):
     total_collateral = 0
     sum_days = 0
     wheel_count = 0
+    no_quantity_wheel_count = 0
     for wheel in wheels:
         total_profit += wheel.total_profit * wheel.quantity
         total_collateral += wheel.collateral * wheel.quantity
         wheel_count += wheel.quantity
         sum_days += wheel.total_days_active * wheel.quantity
+        no_quantity_wheel_count += 1
     context["total_profit"] = total_profit
     context["total_collateral"] = total_collateral
     context["total_profit_dollars"] = total_profit * 100
     context["total_collateral_dollars"] = total_collateral * 100
     context["total_days_active_average"] = sum_days / wheel_count
     context["return_percentage"] = total_profit / total_collateral
+    context["total_wheel_count"] = wheel_count
+    context["no_quantity_wheel_count"] = no_quantity_wheel_count
     return render(request, 'my_total_profit.html', context=context)

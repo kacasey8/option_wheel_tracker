@@ -10,4 +10,6 @@
   <p><strong>Return Percentage:</strong> {{ return_percentage | percentage }}</p>
   <p><strong>Total Profit Dollars:</strong> ${{ total_profit_dollars | intcomma }}</p>
   <p><strong>Total Collateral Dollars:</strong> ${{ total_collateral_dollars | intcomma }}</p>
+  <p><strong>Total Wheels Finished:</strong> {{ no_quantity_wheel_count | intcomma }}</p>
+  <p><strong>Total Wheels Finished Including Quantity:</strong> {{ total_wheel_count | intcomma }}</p>
 {% endblock %}
