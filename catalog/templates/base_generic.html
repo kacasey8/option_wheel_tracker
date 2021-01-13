@@ -14,7 +14,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.js"></script>
   <script type="text/javascript">
     {% if collateral_on_the_line_per_day is not None %}
-      const collateral_on_the_line_per_day = {{collateral_on_the_line_per_day | safe}}; 
+      const collateral_on_the_line_per_day = {{ collateral_on_the_line_per_day | safe }};
+      const profit_per_day = {{ profit_per_day | safe }}; 
     {% endif %}
   </script>
   <script src="{% static 'js/option_detail_table.js' %}"></script>

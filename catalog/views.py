@@ -286,13 +286,16 @@ def my_total_profit(request):
     wheel_count = 0
     no_quantity_wheel_count = 0
     collateral_on_the_line_per_day = defaultdict(int)
+    profit_per_day = defaultdict(int)
     for wheel in wheels:
         wheel_collateral = wheel.collateral * wheel.quantity
-        total_profit += wheel.total_profit * wheel.quantity
+        wheel_profit = wheel.total_profit * wheel.quantity
+        total_profit += wheel_profit
         total_collateral += wheel_collateral
         wheel_count += wheel.quantity
         sum_days += wheel.total_days_active * wheel.quantity
         no_quantity_wheel_count += 1
+        profit_per_day[wheel.get_expiration_date().strftime('%Y-%m-%d')] += float(wheel_profit)
         for day in pandas.bdate_range(wheel.get_open_date(), wheel.get_expiration_date()):
             collateral_on_the_line_per_day[day.strftime('%Y-%m-%d')] += float(wheel_collateral)
     context["total_profit"] = total_profit
@@ -304,5 +307,6 @@ def my_total_profit(request):
     context["total_wheel_count"] = wheel_count
     context["no_quantity_wheel_count"] = no_quantity_wheel_count
     context["collateral_on_the_line_per_day"] = json.dumps(list(collateral_on_the_line_per_day.items()))
+    context["profit_per_day"] = json.dumps(list(profit_per_day.items()))
     context["max_collateral"] = max(collateral_on_the_line_per_day.values())
     return render(request, 'my_total_profit.html', context=context)

@@ -4,30 +4,55 @@ $(document).ready(function () {
     return;
   }
   const ctx = $('#profit_collateral_chart').get(0).getContext("2d");
-  const data = collateral_on_the_line_per_day.sort().map((elem => {
+  const collateral_data = collateral_on_the_line_per_day.sort().map((elem => {
     return {
       t: new Date(elem[0]),
-      y: new Date(elem[1])
+      y: elem[1]
+    }
+  }));
+  const profit_data = profit_per_day.sort().map((elem => {
+    return {
+      t: new Date(elem[0]),
+      y: elem[1]
     }
   }));
 
   const myChart = new Chart(ctx, {
-    type: 'line',
+    type: 'bar',
     data: {
-      datasets: [{
-        label: 'Collateral',
-        data: data,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.2)'
-        ],
-        borderWidth: 1,
-        spanGaps: true
-      }]
+      datasets: [
+        {
+          label: 'Collateral',
+          data: collateral_data,
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderWidth: 1,
+          fill: true,
+          yAxisID: 'A',
+        },
+        {
+          label: 'Profit',
+          data: profit_data,
+          backgroundColor: 'rgba(159, 226, 191, 0.2)',
+          borderWidth: 1,
+          fill: true,
+          yAxisID: 'B',
+        }
+      ],
     },
     options: {
       scales: {
         xAxes: [{
-          type: 'time'
+          type: 'time',
+          distribution: 'series',
+        }],
+        yAxes: [{
+          id: 'A',
+          type: 'linear',
+          position: 'left',
+        }, {
+          id: 'B',
+          type: 'linear',
+          position: 'right',
         }]
       }
     }
