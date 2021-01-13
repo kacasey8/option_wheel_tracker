@@ -37,7 +37,7 @@
         <td>
           {{ put_stat.max_profit_decimal | percentage }}
         </td>
-        <td>
+        <td data-order={{ put_stat.annualized_rate_of_return_decimal }}>
           {{ put_stat.annualized_rate_of_return_decimal | floatformat:2 }}x
         </td>
       </tr>
