@@ -160,11 +160,11 @@ def complete_wheel(request, pk):
             last_purchase.expiration_date,
         )
         puts = [p for p in purchases if p.call_or_put == 'P']
-        max_collatoral = max(p.strike for p in puts)
+        max_collateral = max(p.strike for p in puts)
 
         option_wheel.total_profit = profit
         option_wheel.total_days_active = bus_days
-        option_wheel.collatoral = max_collatoral
+        option_wheel.collatoral = max_collateral
     option_wheel.save()
     return redirect('wheel-detail', pk=pk)
 
@@ -276,8 +276,20 @@ class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
 @login_required
 def my_total_profit(request):
     context = {}
-    wheels = OptionWheel.objects.filter(user=request.user, is_active=True)
+    wheels = OptionWheel.objects.filter(user=request.user, is_active=False)
+    total_profit = 0
+    total_collateral = 0
+    sum_days = 0
+    wheel_count = 0
     for wheel in wheels:
-        wheel.add_purchase_data()
-    context["wheels"] = wheels
-    return render(request, 'my_active_wheels.html', context=context)
+        total_profit += wheel.total_profit * wheel.quantity
+        total_collateral += wheel.collateral * wheel.quantity
+        wheel_count += wheel.quantity
+        sum_days += wheel.total_days_active * wheel.quantity
+    context["total_profit"] = total_profit
+    context["total_collateral"] = total_collateral
+    context["total_profit_dollars"] = total_profit * 100
+    context["total_collateral_dollars"] = total_collateral * 100
+    context["total_days_active_average"] = sum_days / wheel_count
+    context["return_percentage"] = total_profit / total_collateral
+    return render(request, 'my_total_profit.html', context=context)

@@ -11,7 +11,7 @@
   <ul>
     {% for stockticker in stockticker_list %}
       <li>
-        <a href="{{ stockticker.get_absolute_url }}">{{ stockticker.name }} ({{ stockticker.recommendation }})</a>
+        <a href="{{ stockticker.get_absolute_url }}">{{ stockticker.name }}</a>
       </li>
     {% endfor %}
   </ul>

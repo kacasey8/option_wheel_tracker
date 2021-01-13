@@ -86,6 +86,11 @@ class OptionWheel(models.Model):
     total_days_active = models.IntegerField(default=None, null=True)
     collatoral = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
 
+    @property
+    def collateral(self):
+        # ugh, misspelled in the database
+        return self.collatoral
+
     def get_all_option_purchases(self):
          return OptionPurchase.objects.filter(option_wheel=self.id).order_by('-expiration_date', '-purchase_date')
      

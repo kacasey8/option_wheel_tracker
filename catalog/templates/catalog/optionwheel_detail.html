@@ -93,7 +93,7 @@
       {% if wheel.quantity > 1 %} (${{ wheel.total_profit | multiply:wheel.quantity | floatformat:2}} total) {% endif %}
     </div>
     <div>
-      <strong>Collatoral:</strong> {{ wheel.collatoral }}
+      <strong>Collateral:</strong> {{ wheel.collateral }}
     </div>
     <div>
       <a type="button" class="btn btn-warning" href="{% url 'wheel-reactivate' pk=wheel.pk %}">Reactivate Wheel</a>

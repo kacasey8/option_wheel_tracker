@@ -1,0 +1,13 @@
+{% extends "base_generic.html" %}
+{% load filter_tags %}
+{% load humanize %}
+
+{% block content %}
+  <h1>My Total Profit</h1>
+  <p><strong>Total Profit:</strong> {{ total_profit | intcomma }}</p>
+  <p><strong>Total Collateral:</strong> {{ total_collateral | intcomma }}</p>
+  <p><strong>Average Days:</strong> {{ total_days_active_average | floatformat:2 }}</p>
+  <p><strong>Return Percentage:</strong> {{ return_percentage | percentage }}</p>
+  <p><strong>Total Profit Dollars:</strong> ${{ total_profit_dollars | intcomma }}</p>
+  <p><strong>Total Collateral Dollars:</strong> ${{ total_collateral_dollars | intcomma }}</p>
+{% endblock %}
