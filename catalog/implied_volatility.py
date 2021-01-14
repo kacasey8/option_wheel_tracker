@@ -4,8 +4,10 @@ from scipy.special import ndtr
 
 # taken from https://github.com/kpmooney/numerical_methods_youtube/blob/master/root_finding/implied_volatility/find_vol_put.py
 
-TOLERANCE = 1e-2
-MAX_ITERATIONS = 5
+# volatility moves by less than 1%
+TOLERANCE = 0.01
+# bail out after 20 iterations, either we find a good volatility or just give up here
+MAX_ITERATIONS = 20
 
 # S is current price, K is strike, r is interest rate, t is time
 # Function to calculate the values of d1 and d2
