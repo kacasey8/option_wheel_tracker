@@ -24,7 +24,7 @@ $(document).ready(function () {
         {
           label: 'Collateral',
           data: collateral_data,
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          backgroundColor: 'rgba(255, 99, 132)',
           borderWidth: 1,
           fill: true,
           yAxisID: 'A',
@@ -32,7 +32,7 @@ $(document).ready(function () {
         {
           label: 'Profit',
           data: profit_data,
-          backgroundColor: 'rgba(159, 226, 191, 0.2)',
+          backgroundColor: 'rgba(159, 226, 191)',
           borderWidth: 1,
           fill: true,
           yAxisID: 'B',
