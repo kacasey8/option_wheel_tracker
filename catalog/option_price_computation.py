@@ -4,7 +4,8 @@ import yfinance
 import mibian
 import numpy
 
-COMPUTE_EXTRA_STATS = False
+from .implied_volatility import compute_volatility
+
 # interest rate: https://ycharts.com/indicators/10_year_treasury_rate#:~:text=10%20Year%20Treasury%20Rate%20is%20at%200.94%25%2C%20compared%20to%200.94,long%20term%20average%20of%204.39%25.
 INTEREST_RATE = 1
 BUSINESS_DAYS_IN_YEAR = 252
@@ -32,14 +33,8 @@ def get_current_price(stockticker_name):
 
 def get_yfinance_history(ticker_name):
     yahoo_ticker = yfinance.Ticker(ticker_name)
-    if COMPUTE_EXTRA_STATS:
-        yahoo_ticker_history = yahoo_ticker.history(period="150d")
-        # https://blog.quantinsti.com/volatility-and-measures-of-risk-adjusted-return-based-on-volatility/
-        logarithmic_returns = numpy.log(yahoo_ticker_history['Close'] / yahoo_ticker_history['Close'].shift(1))
-        historical_volatility = logarithmic_returns.std() * numpy.sqrt(BUSINESS_DAYS_IN_YEAR) * 100
-    else:
-        yahoo_ticker_history = yahoo_ticker.history(period="1d")
-        historical_volatility = None
+    yahoo_ticker_history = yahoo_ticker.history(period="1d")
+    historical_volatility = None
     if yahoo_ticker_history.empty:
         return None
     return {
@@ -140,7 +135,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         # bid and ask will be 0 during off hours, so use last_price as an estimate.
         # During trading hours we assume we'll assuming worse case that we can only get it for bid price
         effective_price = bid
-    if effective_price == 0:
+    if effective_price == 0 or numpy.isnan(effective_price):
         return None
     if strike > (current_price * IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT) + effective_price:
         # this option has no intrinsic value, since it would be more efficient
@@ -152,11 +147,24 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         # The price seems pretty stale. We should avoid computation since mibian's computation
         # will tend to time out in this case.
         return None
-    put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
-    # kinda silly, we need to construct another object to extract delta for a computation based on real put price
-    # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
-    implied_volatility = put_implied_volatility_calculator.impliedVolatility
-    put_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
+    RUN_NEW_FORUMLA = True
+    if RUN_NEW_FORUMLA:
+        delta = compute_volatility(
+            current_price=current_price,
+            strike=strike,
+            interest_rate=INTEREST_RATE,
+            days_to_expiry=days_to_expiry,
+            option_price=effective_price,
+            is_call=False
+        )
+        probability_out_of_the_money = 1 + delta
+    else:
+        put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
+        # kinda silly, we need to construct another object to extract delta for a computation based on real put price
+        # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
+        implied_volatility = put_implied_volatility_calculator.impliedVolatility
+        put_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
+        probability_out_of_the_money = 1 + put_with_implied_volatility.putDelta
     max_profit_decimal = effective_price / strike
     stats = {
         "strike": strike,
@@ -165,23 +173,9 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_
         "days_to_expiry": days_to_expiry,
         # https://www.macroption.com/delta-calls-puts-probability-expiring-itm/ "Option’s delta as probability proxy"
         "max_profit_decimal": max_profit_decimal,
-        "decimal_odds_out_of_the_money_implied": 1 + put_with_implied_volatility.putDelta,
-        "annualized_rate_of_return_decimal": compute_annualized_rate_of_return(max_profit_decimal, 1 + put_with_implied_volatility.putDelta, days_to_expiry)
+        "decimal_odds_out_of_the_money_implied": probability_out_of_the_money,
+        "annualized_rate_of_return_decimal": compute_annualized_rate_of_return(max_profit_decimal, probability_out_of_the_money, days_to_expiry)
     }
-
-    if COMPUTE_EXTRA_STATS:
-        # these extra computations are interesting, but take extra processing time
-        put = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=historical_volatility)
-        put_with_premium = mibian.BS([current_price, strike - effective_price, INTEREST_RATE, days_to_expiry], volatility=historical_volatility)
-        put_with_premium_with_implied_volatility = mibian.BS([current_price, strike - effective_price, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
-        stats.update({
-            "historical_expected_put_price": put.putPrice,
-            "actual_put_price": effective_price,
-            "decimal_odds_profitable_historical": 1 + put_with_premium.putDelta,
-            "decimal_odds_profitable_implied": 1 + put_with_premium_with_implied_volatility.putDelta,
-            "decimal_odds_in_the_money_historical": 1 + put.putDelta,
-        })
-
 
     return stats
 
