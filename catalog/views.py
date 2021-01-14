@@ -23,7 +23,7 @@ import json
 
 from django.views.decorators.cache import cache_page
 
-ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 30
+ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 60
 
 def _get_next_friday():
     now = timezone.now()

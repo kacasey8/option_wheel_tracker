@@ -3,6 +3,7 @@ from datetime import datetime
 import yfinance
 import mibian
 import numpy
+from django.core.cache import cache
 
 from .implied_volatility import compute_volatility
 
@@ -15,6 +16,8 @@ MINIMUM_VOLUME = 20
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.01
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.99
 
+CURRENT_PRICE_CACHE_TIMEOUT_SECONDS = 120
+
 # We assume that when we fail (for a put we acquire stock, or call we keep stock)
 # we get a rate of return of 1x, which is profit_decimal_fail_case as 0
 def compute_annualized_rate_of_return(profit_decimal, odds, days, profit_decimal_fail_case=0):
@@ -24,35 +27,24 @@ def compute_annualized_rate_of_return(profit_decimal, odds, days, profit_decimal
     return effective_rate_of_return ** (BUSINESS_DAYS_IN_YEAR / days)
 
 def get_current_price(stockticker_name):
+    cache_key = 'current_price_' + stockticker_name
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
     yahoo_ticker = yfinance.Ticker(stockticker_name)
     yahoo_ticker_history = yahoo_ticker.history(period="1d")
     if yahoo_ticker_history.empty:
         return None
     result = yahoo_ticker_history.tail(1)['Close'].iloc[0]
+    cache.set(cache_key, result, CURRENT_PRICE_CACHE_TIMEOUT_SECONDS)
     return result
-
-def get_yfinance_history(ticker_name):
-    yahoo_ticker = yfinance.Ticker(ticker_name)
-    yahoo_ticker_history = yahoo_ticker.history(period="1d")
-    historical_volatility = None
-    if yahoo_ticker_history.empty:
-        return None
-    return {
-        'yahoo_ticker': yahoo_ticker,
-        'yahoo_ticker_history': yahoo_ticker_history,
-        'historical_volatility': historical_volatility,
-        'current_price': yahoo_ticker_history.tail(1)['Close'].iloc[0]
-    }
 
 # only look at the 10 closest option days, so about 2 months weekly options
 def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_day_to_consider=10):
-    yfinance_history = get_yfinance_history(ticker_name)
-    if yfinance_history is None:
+    yahoo_ticker = yfinance.Ticker(ticker_name)
+    current_price = get_current_price(ticker_name)
+    if current_price is None:
         return {'put_stats': [], 'current_price': None}
-    yahoo_ticker = yfinance_history['yahoo_ticker']
-    yahoo_ticker_history = yfinance_history['yahoo_ticker_history']
-    historical_volatility = yfinance_history['historical_volatility']
-    current_price = yfinance_history['current_price']
     put_stats = []
     option_days = yahoo_ticker.options[:maximum_option_days]
     for option_day in option_days:
@@ -72,7 +64,6 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_da
                 current_price,
                 interesting_put,
                 days_to_expiry,
-                historical_volatility,
                 expiration_date=option_day
             )
             if put_stat is not None:
@@ -82,13 +73,10 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_da
 
 # only look at the 10 closest option days, so about 2 months on weekly options
 def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, collateral, maximum_option_days=10):
-    yfinance_history = get_yfinance_history(ticker_name)
-    if yfinance_history is None:
+    yahoo_ticker = yfinance.Ticker(ticker_name)
+    current_price = get_current_price(ticker_name)
+    if current_price is None:
         return {'call_stats': [], 'current_price': None}
-    yahoo_ticker = yfinance_history['yahoo_ticker']
-    yahoo_ticker_history = yfinance_history['yahoo_ticker_history']
-    historical_volatility = yfinance_history['historical_volatility']
-    current_price = yfinance_history['current_price']
     call_stats = []
     option_days = yahoo_ticker.options[:maximum_option_days]
     for option_day in option_days:
@@ -109,7 +97,6 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
                 current_price,
                 interesting_call,
                 days_to_expiry,
-                historical_volatility,
                 expiration_date=option_day,
                 days_active_so_far=days_active_so_far,
                 revenue=revenue,
@@ -120,7 +107,7 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
                 call_stats.append(call_stat)
     return {'call_stats': call_stats, 'current_price': current_price}
 
-def compute_put_stat(current_price, interesting_put, days_to_expiry, historical_volatility, expiration_date):
+def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_date):
     volume = interesting_put.volume
     if volume < MINIMUM_VOLUME or numpy.isnan(volume):
         # These are probably too low volume to be legit. Yahoo finance will show wrong prices
@@ -183,7 +170,6 @@ def compute_call_stat(
     current_price,
     interesting_call,
     days_to_expiry,
-    historical_volatility,
     expiration_date,
     days_active_so_far,
     revenue,
@@ -203,7 +189,7 @@ def compute_call_stat(
         # bid and ask will be 0 during off hours, so use last_price as an estimate.
         # During trading hours we assume we'll assuming worse case that we can only get it for bid price
         effective_price = bid
-    if effective_price == 0:
+    if effective_price == 0 or numpy.isnan(effective_price):
         return None
     if strike + effective_price < current_price * IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL:
         # this option has no intrinsic value, since it would be more efficient
