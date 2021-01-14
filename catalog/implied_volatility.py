@@ -25,8 +25,8 @@ def put_price(sigma, S, K, r, t, d1, d2):
     P = -ndtr(-d1) * S + ndtr(-d2) * K * exp(-r * t)
     return P
 
-
-def compute_volatility(current_price, strike, interest_rate, days_to_expiry, option_price, is_call):
+# only works for puts right now
+def compute_delta(current_price, strike, interest_rate, days_to_expiry, option_price, is_call):
   # epsilon is how far off the guess is
   epsilon = 1
   # initial guess is 0.5
@@ -58,4 +58,5 @@ def compute_volatility(current_price, strike, interest_rate, days_to_expiry, opt
     epsilon = abs( (volatility - orig_volatility) / orig_volatility )
     if epsilon < TOLERANCE:
       break
+  # http://janroman.dhis.org/stud/I2014/BS2/BS_Daniel.pdf, compute put delta
   return -ndtr(-d1)

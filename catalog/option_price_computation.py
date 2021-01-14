@@ -5,7 +5,7 @@ import mibian
 import numpy
 from django.core.cache import cache
 
-from .implied_volatility import compute_volatility
+from .implied_volatility import compute_delta
 
 # interest rate: https://ycharts.com/indicators/10_year_treasury_rate#:~:text=10%20Year%20Treasury%20Rate%20is%20at%200.94%25%2C%20compared%20to%200.94,long%20term%20average%20of%204.39%25.
 INTEREST_RATE = 1
@@ -136,7 +136,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         return None
     RUN_NEW_FORUMLA = True
     if RUN_NEW_FORUMLA:
-        delta = compute_volatility(
+        delta = compute_delta(
             current_price=current_price,
             strike=strike,
             interest_rate=INTEREST_RATE,
