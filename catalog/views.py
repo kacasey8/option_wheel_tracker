@@ -46,6 +46,7 @@ def signup(request):
 def signup_complete(request):
     return render(request, 'signup_complete.html')
 
+@cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def global_put_comparison(request):
     context = {}
     put_stats = []

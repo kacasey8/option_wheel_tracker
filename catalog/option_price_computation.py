@@ -16,7 +16,32 @@ MINIMUM_VOLUME = 20
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.01
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.99
 
-CURRENT_PRICE_CACHE_TIMEOUT_SECONDS = 120
+YAHOO_FINANCE_CACHE_TIMEOUT = 120
+
+def _get_option_days(stockticker_name, maximum_option_days):
+    cache_key = '_get_option_days' + stockticker_name + str(maximum_option_days)
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+    yahoo_ticker = yfinance.Ticker(stockticker_name)
+    result = yahoo_ticker.options[:maximum_option_days]
+    cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+    return result
+
+def _get_option_chain(stockticker_name, option_day, is_call):
+    cache_key = '_get_option_chain' + stockticker_name + option_day + str(is_call)
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+    yahoo_ticker = yfinance.Ticker(stockticker_name)
+    option_chain = yahoo_ticker.option_chain(option_day)
+    if is_call:
+        result = option_chain.calls
+    else:
+        result = option_chain.puts
+    cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+    return result
+
 
 # We assume that when we fail (for a put we acquire stock, or call we keep stock)
 # we get a rate of return of 1x, which is profit_decimal_fail_case as 0
@@ -27,7 +52,7 @@ def compute_annualized_rate_of_return(profit_decimal, odds, days, profit_decimal
     return effective_rate_of_return ** (BUSINESS_DAYS_IN_YEAR / days)
 
 def get_current_price(stockticker_name):
-    cache_key = 'current_price_' + stockticker_name
+    cache_key = 'get_current_price_' + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return cached_result
@@ -36,19 +61,18 @@ def get_current_price(stockticker_name):
     if yahoo_ticker_history.empty:
         return None
     result = yahoo_ticker_history.tail(1)['Close'].iloc[0]
-    cache.set(cache_key, result, CURRENT_PRICE_CACHE_TIMEOUT_SECONDS)
+    cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
     return result
 
 # only look at the 10 closest option days, so about 2 months weekly options
 def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_day_to_consider=10):
-    yahoo_ticker = yfinance.Ticker(ticker_name)
     current_price = get_current_price(ticker_name)
     if current_price is None:
         return {'put_stats': [], 'current_price': None}
     put_stats = []
-    option_days = yahoo_ticker.options[:maximum_option_days]
+    option_days = _get_option_days(ticker_name, maximum_option_days)
     for option_day in option_days:
-        puts = yahoo_ticker.option_chain(option_day).puts
+        puts = _get_option_chain(ticker_name, option_day, is_call=False)
         interesting_indicies = puts[puts['strike'].gt(current_price)].index
         if len(interesting_indicies) == 0:
             continue
@@ -78,12 +102,12 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
     if current_price is None:
         return {'call_stats': [], 'current_price': None}
     call_stats = []
-    option_days = yahoo_ticker.options[:maximum_option_days]
+    option_days = _get_option_days(ticker_name, maximum_option_days)
     for option_day in option_days:
         option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
         # add one to business days since it includes the current day too
         days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
-        calls = yahoo_ticker.option_chain(option_day).calls
+        calls = _get_option_chain(ticker_name, option_day, is_call=True)
         interesting_indicies = calls[calls['strike'].gt(current_price)].index
         if len(interesting_indicies) == 0:
             continue
@@ -134,7 +158,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         # The price seems pretty stale. We should avoid computation since mibian's computation
         # will tend to time out in this case.
         return None
-    RUN_NEW_FORUMLA = True
+    RUN_NEW_FORUMLA = False
     if RUN_NEW_FORUMLA:
         delta = compute_delta(
             current_price=current_price,
