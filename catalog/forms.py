@@ -53,7 +53,7 @@ class OptionPurchaseForm(forms.ModelForm):
             raise ValidationError(_('Invalid date - purchase in future'))
 
         # The purchase date must be before the expiration date
-        if purchase_date >= expiration_date:
-            raise ValidationError(_('Invalid dates - expiration must be after purchase'))
+        if purchase_date > expiration_date:
+            raise ValidationError(_('Invalid dates - purchase date cannot be after expiration'))
 
         return cleaned_data
