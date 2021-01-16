@@ -78,7 +78,7 @@
               <a type="button" class="btn btn-primary btn-sm" href="{% url 'purchase-create' wheel_id=row.pk %}">Call</a>
             </td>
             <td>
-              <a type="button" class="btn btn-success btn-sm" href="{% url 'my-active-wheels' %}">Complete</a>
+              <a type="button" class="btn btn-success btn-sm" href="{% url 'wheel-complete' pk=row.pk %}?next={{ request.path|urlencode }}">Complete</a>
             </td>
             <td>
               <a type="button" class="btn btn-info btn-sm" href="{% url 'wheel-update' pk=row.pk %}">Edit</a>

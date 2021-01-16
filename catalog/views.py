@@ -170,6 +170,8 @@ def complete_wheel(request, pk):
         option_wheel.total_days_active = bus_days
         option_wheel.collatoral = max_collateral
     option_wheel.save()
+    if 'next' in request.GET:
+        return redirect(request.GET['next'])
     return redirect('wheel-detail', pk=pk)
 
 @login_required
