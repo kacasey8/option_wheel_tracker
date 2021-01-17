@@ -4,6 +4,7 @@ from django.shortcuts import render, reverse, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import generic
+from django.contrib.auth.models import User
 
 from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm
 from catalog.models import OptionPurchase, StockTicker, OptionWheel
@@ -117,7 +118,6 @@ def my_completed_wheels(request):
     context["wheels"] = wheels
     return render(request, 'my_completed_wheels.html', context=context)
 
-@login_required
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def all_active_wheels(request):
     context = {}
@@ -128,7 +128,6 @@ def all_active_wheels(request):
     return render(request, 'all_active_wheels.html', context=context)
 
 
-@login_required
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def all_completed_wheels(request):
     context = {}
@@ -320,3 +319,8 @@ def my_total_profit(request):
     context["profit_per_day"] = json.dumps(list(profit_per_day.items()))
     context["max_collateral"] = max(collateral_on_the_line_per_day.values())
     return render(request, 'my_total_profit.html', context=context)
+
+
+# User views
+class UserListView(generic.ListView):
+    model = User
