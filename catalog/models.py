@@ -35,6 +35,9 @@ class StockTicker(models.Model):
     def get_absolute_url(self):
         return reverse('ticker-detail', args=[str(self.id)])
 
+    class Meta:
+        ordering = ["name"]
+
 class OptionPurchase(models.Model):
     """Represents an option sold on a specific day"""
     user = models.ForeignKey(
