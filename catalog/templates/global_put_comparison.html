@@ -5,12 +5,12 @@
   <div>Shows the put options on every stock in the database</div>
   <a href="{% url 'tickers' %}">Back to stock list</a>
   {% if permanently_unavailable is not None %}
-    <div>This feature doesn't work on dev. Try on the real site.</div>
+    <div>This feature doesn't work on dev, since it requires worker.py to be running. Try on the heroku site.</div>
   {% elif unavailable is not None %}
     <div>Please wait while this is processing. Page will auto refresh in one minute</div>
     <div>
       <span id="timer">
-        <span id="time">10</span>Seconds      
+        <span id="time">60</span> Seconds      
       </span>
     </div>
     <script>
