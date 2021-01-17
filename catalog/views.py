@@ -16,6 +16,7 @@ from .option_price_computation import (
     get_put_stats_for_ticker,
     get_call_stats_for_option_wheel
 )
+from .business_day_count import busday_count_inclusive
 
 import numpy
 import pandas
@@ -159,7 +160,7 @@ def complete_wheel(request, pk):
         premiums = sum(purchase.premium for purchase in purchases)
         profit = premiums + last_purchase.strike - first_purchase.strike
 
-        bus_days = numpy.busday_count(
+        bus_days = busday_count_inclusive(
             first_purchase.purchase_date.date(),
             last_purchase.expiration_date,
         )
@@ -254,7 +255,7 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         first_purchase = option_wheel.get_first_option_purchase()
         if first_purchase is not None:
             last_purchase = option_wheel.get_last_option_purchase()
-            days_active_so_far = numpy.busday_count(
+            days_active_so_far = busday_count_inclusive(
                 first_purchase.purchase_date.date(),
                 last_purchase.expiration_date,
             )

@@ -6,6 +6,7 @@ import numpy
 from django.core.cache import cache
 
 from .implied_volatility import compute_delta
+from .business_day_count import busday_count_inclusive
 
 # interest rate: https://ycharts.com/indicators/10_year_treasury_rate#:~:text=10%20Year%20Treasury%20Rate%20is%20at%200.94%25%2C%20compared%20to%200.94,long%20term%20average%20of%204.39%25.
 INTEREST_RATE = 1
@@ -60,6 +61,12 @@ def _get_odds_otm(current_price, strike, days_to_expiry, put_price):
 # We assume that when we fail (for a put we acquire stock, or call we keep stock)
 # we get a rate of return of 1x, which is profit_decimal_fail_case as 0
 def compute_annualized_rate_of_return(profit_decimal, odds, days, profit_decimal_fail_case=0):
+    if days < 5:
+        # typically you can't do options faster than once a week, so assume the minimum timeframe
+        # is 5 days. This could be unnecessarily punishing toward short time frame, but is perhaps
+        # more realistic
+        days = 5
+
     rate_of_return_success_case = 1 + profit_decimal
     rate_of_return_fail_case = 1 + profit_decimal_fail_case
     effective_rate_of_return = rate_of_return_success_case * odds + rate_of_return_fail_case * (1 - odds)
@@ -96,7 +103,7 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_da
         interesting_puts = puts[max(otm_threshold_index - options_per_day_to_consider, 0):otm_threshold_index]
         option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
         # add one to business days since it includes the current day too
-        days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
+        days_to_expiry = busday_count_inclusive(datetime.now().date(), option_day_as_date_object)
         for index, interesting_put in interesting_puts.iterrows():
             put_stat = compute_put_stat(
                 current_price,
@@ -120,7 +127,7 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
     for option_day in option_days:
         option_day_as_date_object = datetime.strptime(option_day, '%Y-%m-%d').date()
         # add one to business days since it includes the current day too
-        days_to_expiry = numpy.busday_count(datetime.now().date(), option_day_as_date_object) + 1
+        days_to_expiry = busday_count_inclusive(datetime.now().date(), option_day_as_date_object)
         calls = _get_option_chain(ticker_name, option_day, is_call=True)
         interesting_indicies = calls[calls['strike'].gt(current_price)].index
         if len(interesting_indicies) == 0:

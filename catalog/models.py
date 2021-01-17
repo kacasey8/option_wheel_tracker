@@ -4,6 +4,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from datetime import datetime
+from .business_day_count import busday_count_inclusive
 from .option_price_computation import (
     compute_annualized_rate_of_return,
     get_current_price
@@ -146,7 +147,7 @@ class OptionWheel(models.Model):
             last_purchase = self.get_last_option_purchase()
             profit_if_exits_here = last_purchase.strike - cost_basis
 
-            days_active_so_far = numpy.busday_count(
+            days_active_so_far = busday_count_inclusive(
                 first_purchase.purchase_date.date(),
                 last_purchase.expiration_date,
             )
