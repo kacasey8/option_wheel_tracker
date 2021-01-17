@@ -12,7 +12,7 @@ GLOBAL_PUT_RUNNING_CACHE_KEY = 'global_put_comparison_running'
 
 def schedule_global_put_comparison_async():
   is_currently_running = cache.get(GLOBAL_PUT_RUNNING_CACHE_KEY)
-  if is_currently_running is not None:
+  if is_currently_running is None:
     cache.set(GLOBAL_PUT_RUNNING_CACHE_KEY, True, GLOBAL_PUT_TIMEOUT_SECONDS)
     q = Queue(connection=conn)
     return q.enqueue(_run_global_put_comparison)
