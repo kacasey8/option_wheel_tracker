@@ -4,5 +4,9 @@
   <h1>Global Put Options</h1>
   <div>Shows the put options on every stock in the database</div>
   <a href="{% url 'tickers' %}">Back to stock list</a>
-  {% include '_option_put_table.html' %}
+  {% if unavailable is not None %}
+    <div>Please wait while this is processing. Come back in one minute</div>
+  {% else %}
+    {% include '_option_put_table.html' %}
+  {% endif %}
 {% endblock %}

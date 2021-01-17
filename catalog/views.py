@@ -17,12 +17,14 @@ from .option_price_computation import (
     get_call_stats_for_option_wheel
 )
 from .business_day_count import busday_count_inclusive
+from .schedule_async import schedule_global_put_comparison_async, GLOBAL_PUT_CACHE_KEY
 
 import numpy
 import pandas
 import json
 
 from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 60
 
@@ -47,13 +49,14 @@ def signup(request):
 def signup_complete(request):
     return render(request, 'signup_complete.html')
 
-@cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def global_put_comparison(request):
     context = {}
-    put_stats = []
-    for stock_ticker in StockTicker.objects.all():
-        put_stats += get_put_stats_for_ticker(stock_ticker.name, maximum_option_days=2, options_per_day_to_consider=3)['put_stats']
-    context['put_stats'] = sorted(put_stats, key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
+    cached_result = cache.get(GLOBAL_PUT_CACHE_KEY)
+    if cached_result is not None:
+        context['put_stats'] = cached_result
+        return render(request, 'global_put_comparison.html', context=context)
+    schedule_global_put_comparison_async()
+    context['unavailable'] = True
     return render(request, 'global_put_comparison.html', context=context)
 
 
