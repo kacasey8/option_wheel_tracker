@@ -3,10 +3,13 @@ from datetime import datetime
 import yfinance
 import mibian
 import numpy
+from django.core.cache import caches
 from django.core.cache import cache
 
 from .implied_volatility import compute_delta
 from .business_day_count import busday_count_inclusive
+
+import time
 
 # interest rate: https://ycharts.com/indicators/10_year_treasury_rate#:~:text=10%20Year%20Treasury%20Rate%20is%20at%200.94%25%2C%20compared%20to%200.94,long%20term%20average%20of%204.39%25.
 INTEREST_RATE = 1
@@ -17,7 +20,7 @@ MINIMUM_VOLUME = 20
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.01
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.99
 
-YAHOO_FINANCE_CACHE_TIMEOUT = 120
+YAHOO_FINANCE_CACHE_TIMEOUT = 5 * 60
 
 def _get_option_days(stockticker_name, maximum_option_days):
     cache_key = '_get_option_days' + stockticker_name + str(maximum_option_days)
@@ -27,6 +30,7 @@ def _get_option_days(stockticker_name, maximum_option_days):
     yahoo_ticker = yfinance.Ticker(stockticker_name)
     result = yahoo_ticker.options[:maximum_option_days]
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+
     return result
 
 def _get_option_chain(stockticker_name, option_day, is_call):
@@ -34,6 +38,7 @@ def _get_option_chain(stockticker_name, option_day, is_call):
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return cached_result
+    start = time.time()
     yahoo_ticker = yfinance.Ticker(stockticker_name)
     option_chain = yahoo_ticker.option_chain(option_day)
     if is_call:
@@ -41,6 +46,8 @@ def _get_option_chain(stockticker_name, option_day, is_call):
     else:
         result = option_chain.puts
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+    ending = time.time() - start
+    print(stockticker_name, option_day, ending)
     return result
 
 def _get_odds_otm(current_price, strike, days_to_expiry, put_price):
