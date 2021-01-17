@@ -55,7 +55,10 @@ def global_put_comparison(request):
     if cached_result is not None:
         context['put_stats'] = cached_result
         return render(request, 'global_put_comparison.html', context=context)
-    schedule_global_put_comparison_async()
+    try:
+        schedule_global_put_comparison_async()
+    except:
+        context['permanently_unavailable'] = True
     context['unavailable'] = True
     return render(request, 'global_put_comparison.html', context=context)
 

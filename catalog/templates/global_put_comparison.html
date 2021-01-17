@@ -4,7 +4,9 @@
   <h1>Global Put Options</h1>
   <div>Shows the put options on every stock in the database</div>
   <a href="{% url 'tickers' %}">Back to stock list</a>
-  {% if unavailable is not None %}
+  {% if permanently_unavailable is not None %}
+    <div>This feature doesn't work on dev. Try on the real site.</div>
+  {% elif unavailable is not None %}
     <div>Please wait while this is processing. Page will auto refresh in one minute</div>
     <div>
       <span id="timer">
