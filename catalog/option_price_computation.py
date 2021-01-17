@@ -42,6 +42,20 @@ def _get_option_chain(stockticker_name, option_day, is_call):
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
     return result
 
+def _get_odds_otm(current_price, strike, days_to_expiry, put_price):
+    cache_key = '_get_odds_otm' + str(current_price) + str(strike) + str(days_to_expiry) + str(put_price)
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+    put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=put_price)
+    # kinda silly, we need to construct another object to extract delta for a computation based on real put price
+    # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
+    implied_volatility = put_implied_volatility_calculator.impliedVolatility
+    put_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
+    result = 1 + put_with_implied_volatility.putDelta
+    cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+    return result
+
 
 # We assume that when we fail (for a put we acquire stock, or call we keep stock)
 # we get a rate of return of 1x, which is profit_decimal_fail_case as 0
@@ -170,12 +184,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         )
         probability_out_of_the_money = 1 + delta
     else:
-        put_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], putPrice=effective_price)
-        # kinda silly, we need to construct another object to extract delta for a computation based on real put price
-        # Yahoo's volatility in interesting_put.impliedVolatility seems low, ~20% too low, so lets use the implied volatility
-        implied_volatility = put_implied_volatility_calculator.impliedVolatility
-        put_with_implied_volatility = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], volatility=implied_volatility)
-        probability_out_of_the_money = 1 + put_with_implied_volatility.putDelta
+        probability_out_of_the_money = _get_odds_otm(current_price, strike, days_to_expiry, effective_price)
     max_profit_decimal = effective_price / strike
     stats = {
         "strike": strike,
