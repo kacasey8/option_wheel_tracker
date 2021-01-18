@@ -6,8 +6,8 @@ from django.utils import timezone
 from django.views import generic
 from django.contrib.auth.models import User
 
-from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm
-from catalog.models import OptionPurchase, StockTicker, OptionWheel
+from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm, AccountForm
+from catalog.models import Account, OptionPurchase, StockTicker, OptionWheel
 
 from datetime import timedelta, datetime
 from collections import defaultdict 
@@ -78,11 +78,6 @@ class StockTickerDetailView(generic.DetailView):
         context['current_price'] = result['current_price']
         return context
 
-
- 
-class OptionPurchaseDetailView(generic.DetailView):
-    model = OptionPurchase
-
 class StockTickerCreate(generic.edit.CreateView):
     model = StockTicker
     form_class = StockTickerForm
@@ -97,9 +92,37 @@ class StockTickerDelete(generic.edit.DeleteView):
     model = StockTicker
     success_url = reverse_lazy('tickers')
 
+# Account views
+class MyAccountsListView(LoginRequiredMixin, generic.ListView):
+    model = Account
+
+    def get_queryset(self):
+        return Account.objects.filter(user=self.request.user)
+
+class AccountCreate(LoginRequiredMixin, generic.edit.CreateView):
+    model = Account
+    form_class = AccountForm
+    success_url = reverse_lazy('my-accounts')
+
+    def get_initial(self):
+        user = self.request.user
+        return {
+            'user': user
+        }
+
+class AccountUpdate(LoginRequiredMixin, generic.edit.UpdateView):
+    model = Account
+    form_class = AccountForm
+    success_url = reverse_lazy('my-accounts')
+
+class AccountDelete(LoginRequiredMixin, generic.edit.DeleteView):
+    model = Account
+    success_url = reverse_lazy('my-accounts')
+
+class AccountDetailView(LoginRequiredMixin, generic.DetailView):
+    model = Account
 
 # OptionWheel views
-
 @login_required
 def my_active_wheels(request):
     context = {}
@@ -197,6 +220,11 @@ class OptionWheelCreate(generic.edit.CreateView):
             'user': user, 
             'is_active': True
         }
+    
+    def get_form_kwargs(self):
+        kwargs = super(OptionWheelCreate, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs 
 
     def get_success_url(self):
         return reverse('purchase-create', args=[str(self.object.id)])
@@ -204,6 +232,11 @@ class OptionWheelCreate(generic.edit.CreateView):
 class OptionWheelUpdate(generic.edit.UpdateView):
     model = OptionWheel
     form_class = OptionWheelForm
+
+    def get_form_kwargs(self):
+        kwargs = super(OptionWheelUpdate, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs 
 
     def get_success_url(self):
         return reverse('wheel-detail', args=[str(self.object.id)])
@@ -283,8 +316,7 @@ class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
         wheel_id = self.kwargs.get('wheel_id')
         return reverse('wheel-detail', args=[str(wheel_id)])
 
-## TOTAL PROFIT VIEWS
-
+# Total Profit Views
 @login_required
 def my_total_profit(request):
     context = {}

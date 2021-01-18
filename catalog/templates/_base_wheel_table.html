@@ -9,6 +9,7 @@
         {% if all %}
           <th>User</th>
         {% endif %}
+        <th>Account</th>
         <th>Last Purchase</th>
         <th>Ticker</th>
         <th>Last Price</th>
@@ -40,6 +41,9 @@
               {{ row.user }}
             </td>
           {% endif %}
+          <td>
+            {{ row.account }}
+          </td>
           <td>
             ${{ row.last_purchase.strike }} {{ row.last_purchase.call_or_put | call_or_put }}
           </td>
