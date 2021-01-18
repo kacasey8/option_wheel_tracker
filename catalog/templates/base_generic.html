@@ -37,6 +37,7 @@
             <li><a href="{% url 'my-active-wheels' %}">My Active Wheels</a></li>
             <li><a href="{% url 'my-completed-wheels' %}">My Completed Wheels</a></li>
             <li><a href="{% url 'my-total-profit' %}">My Total Profit</a></li>
+            <li><a href="{% url 'my-accounts' %}">My Accounts</a></li>
             <li>User: {{ user.get_username }}</li>
             <li><a href="{% url 'logout'%}?next={{request.path}}">Logout</a></li>
           {% else %}
