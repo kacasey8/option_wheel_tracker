@@ -7,7 +7,8 @@ from datetime import datetime
 from .business_day_count import busday_count_inclusive
 from .option_price_computation import (
     compute_annualized_rate_of_return,
-    get_current_price
+    get_current_price,
+    get_previous_close_price
 )
 
 import numpy
@@ -35,6 +36,21 @@ class StockTicker(models.Model):
 
     def get_absolute_url(self):
         return reverse('ticker-detail', args=[str(self.id)])
+
+    @property
+    def current_price(self):
+        return get_current_price(self.name)
+
+    @property
+    def change_today(self):
+        print(self.current_price)
+        print(get_previous_close_price(self.name))
+        return self.current_price - get_previous_close_price(self.name)
+
+    @property
+    def percent_change_today(self):
+        current_price = self.current_price
+        return (current_price - get_previous_close_price(self.name)) * 1.0 / current_price
 
     class Meta:
         ordering = ["name"]

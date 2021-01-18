@@ -92,6 +92,19 @@ def get_current_price(stockticker_name):
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
     return result
 
+def get_previous_close_price(stockticker_name):
+    cache_key = 'get_previous_close_price' + stockticker_name
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+    yahoo_ticker = yfinance.Ticker(stockticker_name)
+    yahoo_ticker_history = yahoo_ticker.history(period="5d")
+    if yahoo_ticker_history.empty:
+        return None
+    result = yahoo_ticker_history.tail(2)['Close'].iloc[0]
+    cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+    return result
+
 # only look at the 10 closest option days, so about 2 months weekly options
 def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_day_to_consider=10):
     current_price = get_current_price(ticker_name)

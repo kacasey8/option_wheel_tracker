@@ -1,4 +1,5 @@
 {% extends "base_generic.html" %}
+{% load filter_tags %}
 
 {% block content %}
   <h1>Stock Ticker List</h1>
@@ -11,7 +12,9 @@
   <ul>
     {% for stockticker in stockticker_list %}
       <li>
-        <a href="{{ stockticker.get_absolute_url }}">{{ stockticker.name }}</a>
+        <a href="{{ stockticker.get_absolute_url }}">{{ stockticker.name }}</a> {{ stockticker.current_price | floatformat:2 }}
+        {{ stockticker.change_today | floatformat:2 }}
+        ({{ stockticker.percent_change_today | percentage }})
       </li>
     {% endfor %}
   </ul>
