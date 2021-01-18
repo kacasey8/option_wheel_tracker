@@ -29,7 +29,6 @@ class AccountForm(forms.ModelForm):
         }
 
 class OptionWheelForm(forms.ModelForm):
-    account = forms.MultipleChoiceField(required=True)
     class Meta:
         model = OptionWheel
         fields = ('user', 'stock_ticker', 'account', 'quantity', 'is_active')
@@ -41,7 +40,11 @@ class OptionWheelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs): 
         user = kwargs.pop('user', None) # pop the 'user' from kwargs dictionary   
         super(OptionWheelForm, self).__init__(*args, **kwargs)
-        self.fields['account'] = forms.ModelChoiceField(queryset=Account.objects.filter(user=user))
+        user_accounts = Account.objects.filter(user=user)
+        account_field = forms.ModelChoiceField(queryset=user_accounts, required=True)
+        if not user_accounts:
+            account_field.help_text = "Add a new account first."
+        self.fields['account'] = account_field
 
 
 class OptionPurchaseForm(forms.ModelForm):
