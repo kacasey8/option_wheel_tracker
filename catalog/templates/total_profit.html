@@ -3,7 +3,11 @@
 {% load humanize %}
 
 {% block content %}
-  <h1>My Total Profit</h1>
+  {% if user.is_authenticated and user.id == profit_user.id %}
+    <h1>My Total Profit</h1>
+  {% else %}
+    <h1>Total Profit for {{ profit_user }}</h1>
+  {% endif %}
   <p><strong>Total Profit:</strong> {{ total_profit | intcomma }}</p>
   <p><strong>Total Collateral:</strong> {{ total_collateral | intcomma }}</p>
   <p><strong>Max Collateral At Any Point:</strong> {{ max_collateral | intcomma }}</p>

@@ -319,15 +319,17 @@ class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
 # Total Profit Views
 @login_required
 def my_total_profit(request):
-    wheels = OptionWheel.objects.filter(user=request.user, is_active=False)
-    context = _setup_context_for_total_profit(wheels, {})
-    return render(request, 'my_total_profit.html', context=context)
+    user = request.user
+    wheels = OptionWheel.objects.filter(user=user, is_active=False)
+    context = _setup_context_for_total_profit(wheels, {'profit_user': user})
+    return render(request, 'total_profit.html', context=context)
 
 
 def total_profit(request, pk):
-    wheels = OptionWheel.objects.filter(user=User.objects.get(pk=pk), is_active=False)
-    context = _setup_context_for_total_profit(wheels, {})
-    return render(request, 'my_total_profit.html', context=context)
+    user = User.objects.get(pk=pk)
+    wheels = OptionWheel.objects.filter(user=user, is_active=False)
+    context = _setup_context_for_total_profit(wheels, {'profit_user': user})
+    return render(request, 'total_profit.html', context=context)
 
 
 def _setup_context_for_total_profit(wheels, context):
