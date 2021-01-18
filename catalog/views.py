@@ -287,8 +287,18 @@ class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
 
 @login_required
 def my_total_profit(request):
-    context = {}
     wheels = OptionWheel.objects.filter(user=request.user, is_active=False)
+    context = _setup_context_for_total_profit(wheels, {})
+    return render(request, 'my_total_profit.html', context=context)
+
+
+def total_profit(request, pk):
+    wheels = OptionWheel.objects.filter(user=User.objects.get(pk=pk), is_active=False)
+    context = _setup_context_for_total_profit(wheels, {})
+    return render(request, 'my_total_profit.html', context=context)
+
+
+def _setup_context_for_total_profit(wheels, context):
     total_profit = 0
     total_collateral = 0
     sum_days = 0
@@ -311,14 +321,16 @@ def my_total_profit(request):
     context["total_collateral"] = total_collateral
     context["total_profit_dollars"] = total_profit * 100
     context["total_collateral_dollars"] = total_collateral * 100
+    wheel_count = max([wheel_count, 1]) # avoid divide by 0
+    total_collateral = max([total_collateral, 1])
     context["total_days_active_average"] = sum_days / wheel_count
     context["return_percentage"] = total_profit / total_collateral
     context["total_wheel_count"] = wheel_count
     context["no_quantity_wheel_count"] = no_quantity_wheel_count
     context["collateral_on_the_line_per_day"] = json.dumps(list(collateral_on_the_line_per_day.items()))
     context["profit_per_day"] = json.dumps(list(profit_per_day.items()))
-    context["max_collateral"] = max(collateral_on_the_line_per_day.values())
-    return render(request, 'my_total_profit.html', context=context)
+    context["max_collateral"] = max(collateral_on_the_line_per_day.values() or [0])
+    return context
 
 
 # User views

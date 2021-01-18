@@ -27,4 +27,5 @@ urlpatterns = [
     path('wheels/<int:pk>/delete/', views.OptionWheelDelete.as_view(), name='wheel-delete'),
     path('my_total_profit/', views.my_total_profit, name='my-total-profit'),
     path('users/', views.UserListView.as_view(), name='users'),
+    path('user/<int:pk>/total_profit', views.total_profit, name='user-total-profit'),
 ]

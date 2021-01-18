@@ -7,7 +7,7 @@
     <ul>
       {% for user in user_list %}
         <li>
-          <a href="{{ user.get_absolute_url }}">{{ user.username }}</a>
+          <a href="{{ user.get_absolute_url }}">{{ user.username }}</a> <a href="{% url 'user-total-profit' pk=user.id %}">Profit</a>
         </li>
       {% endfor %}
     </ul>
