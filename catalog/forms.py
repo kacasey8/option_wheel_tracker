@@ -40,11 +40,11 @@ class OptionWheelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs): 
         user = kwargs.pop('user', None) # pop the 'user' from kwargs dictionary   
         super(OptionWheelForm, self).__init__(*args, **kwargs)
-        user_accounts = Account.objects.filter(user=user)
-        account_field = forms.ModelChoiceField(queryset=user_accounts, required=True)
-        if not user_accounts:
-            account_field.help_text = "Add a new account first."
-        self.fields['account'] = account_field
+        self.fields['account'] = forms.ModelChoiceField(
+            required=False,
+            queryset=Account.objects.filter(user=user),
+            label="Account (optional)"
+        )
 
 
 class OptionPurchaseForm(forms.ModelForm):
