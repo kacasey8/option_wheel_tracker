@@ -125,21 +125,41 @@ class AccountDetailView(LoginRequiredMixin, generic.DetailView):
 # OptionWheel views
 @login_required
 def my_active_wheels(request):
-    context = {}
-    wheels = OptionWheel.objects.filter(user=request.user, is_active=True)
+    user = request.user
+    wheels = OptionWheel.objects.filter(user=user, is_active=True)
     for wheel in wheels:
         wheel.add_purchase_data()
+    context = {'wheel_user': user}
     context["wheels"] = wheels
-    return render(request, 'my_active_wheels.html', context=context)
+    return render(request, 'active_wheels.html', context=context)
+
+def active_wheels(request, pk):
+    user = User.objects.get(pk=pk)
+    wheels = OptionWheel.objects.filter(user=user, is_active=True)
+    for wheel in wheels:
+        wheel.add_purchase_data()
+    context = {'wheel_user': user}
+    context["wheels"] = wheels
+    return render(request, 'active_wheels.html', context=context)
 
 @login_required
 def my_completed_wheels(request):
-    context = {}
-    wheels = OptionWheel.objects.filter(user=request.user, is_active=False)
+    user = request.user
+    wheels = OptionWheel.objects.filter(user=user, is_active=True)
     for wheel in wheels:
         wheel.add_purchase_data()
+    context = {'wheel_user': user}
     context["wheels"] = wheels
-    return render(request, 'my_completed_wheels.html', context=context)
+    return render(request, 'completed_wheels.html', context=context)
+
+def completed_wheels(request, pk):
+    user = User.objects.get(pk=pk)
+    wheels = OptionWheel.objects.filter(user=user, is_active=True)
+    for wheel in wheels:
+        wheel.add_purchase_data()
+    context = {'wheel_user': user}
+    context["wheels"] = wheels
+    return render(request, 'completed_wheels.html', context=context)
 
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def all_active_wheels(request):

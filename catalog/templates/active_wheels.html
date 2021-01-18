@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  {% if user.is_authenticated and user.id == wheel_user.id %}
+    <h1>My Active Wheels</h1>
+    <p><a type="button" class="btn btn-primary" href="{% url 'wheel-create' %}">Start New Wheel</a></p>
+  {% else %}
+    <h1>Active Wheels for {{ wheel_user }}</h1>
+  {% endif %}
+
+  {% if wheels %}
+    {% include '_base_wheel_table.html' with wheels=wheels active=True %}
+  {% else %}
+    <p>You have no active wheels</p>
+  {% endif %}
+{% endblock %}

@@ -7,7 +7,9 @@
     <ul>
       {% for user in user_list %}
         <li>
-          {{ user.username }} <a href="{% url 'user-total-profit' pk=user.id %}">Profit</a>
+          {{ user.username }}: <a href="{% url 'user-total-profit' pk=user.id %}">Profit</a>,
+          <span><a href="{% url 'user-active-wheels' pk=user.id %}">Active Wheels</a></span>,
+          <span><a href="{% url 'user-completed-wheels' pk=user.id %}">Completed Wheels</a></span>
         </li>
       {% endfor %}
     </ul>
