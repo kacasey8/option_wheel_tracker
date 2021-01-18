@@ -78,11 +78,6 @@ class StockTickerDetailView(generic.DetailView):
         context['current_price'] = result['current_price']
         return context
 
-
- 
-class OptionPurchaseDetailView(generic.DetailView):
-    model = OptionPurchase
-
 class StockTickerCreate(generic.edit.CreateView):
     model = StockTicker
     form_class = StockTickerForm
@@ -99,7 +94,6 @@ class StockTickerDelete(generic.edit.DeleteView):
 
 
 # OptionWheel views
-
 @login_required
 def my_active_wheels(request):
     context = {}
@@ -283,8 +277,7 @@ class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
         wheel_id = self.kwargs.get('wheel_id')
         return reverse('wheel-detail', args=[str(wheel_id)])
 
-## TOTAL PROFIT VIEWS
-
+# Total Profit Views
 @login_required
 def my_total_profit(request):
     context = {}
