@@ -181,7 +181,7 @@ def all_completed_wheels(request):
     return render(request, 'all_completed_wheels.html', context=context)
 
 
-class OptionWheelDetailView(LoginRequiredMixin, generic.DetailView):
+class OptionWheelDetailView(generic.DetailView):
     model = OptionWheel
     context_object_name = 'wheel'
 
