@@ -28,4 +28,9 @@ urlpatterns = [
     path('my_total_profit/', views.my_total_profit, name='my-total-profit'),
     path('users/', views.UserListView.as_view(), name='users'),
     path('user/<int:pk>/total_profit', views.total_profit, name='user-total-profit'),
+    path('my_accounts/', views.MyAccountsListView.as_view(), name='my-accounts'),
+    path('accounts/<int:pk>', views.AccountDetailView.as_view(), name='account-detail'),
+    path('accounts/create/', views.AccountCreate.as_view(), name='account-create'),
+    path('accounts/<int:pk>/update/', views.AccountUpdate.as_view(), name='account-update'),
+    path('accounts/<int:pk>/delete/', views.AccountDelete.as_view(), name='account-delete'),
 ]

@@ -1,0 +1,19 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>My Accounts</h1>
+  <p><a type="button" class="btn btn-primary" href="{% url 'account-create' %}">New Account</a></p>
+
+  {% if account_list %}
+    <br>
+    <ul>
+      {% for account in account_list %}
+        <li>
+          <a href="{{ account.get_absolute_url }}">{{ account }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You have no accounts.</p>
+  {% endif %} 
+{% endblock %}

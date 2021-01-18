@@ -1,0 +1,11 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Account: {{ account.name }}</h1>
+  <a href="{% url 'my-accounts' %}">My Accounts</a>
+  <p><strong>Name:</strong> {{ account.name }}</p>
+  <br>
+  <a type="button" class="btn btn-primary" href="{% url 'account-update' pk=account.pk %}">Edit</a>
+  <a type="button" class="btn btn-danger" href="{% url 'account-delete' pk=account.pk %}" variant="danger">Delete</a>
+{% endblock %}
+
