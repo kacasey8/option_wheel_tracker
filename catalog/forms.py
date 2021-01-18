@@ -23,7 +23,7 @@ class StockTickerForm(forms.ModelForm):
 class OptionWheelForm(forms.ModelForm):
     class Meta:
         model = OptionWheel
-        fields = ('user', 'stock_ticker', 'quantity', 'is_active')
+        fields = ('user', 'stock_ticker', 'account', 'quantity', 'is_active')
         widgets = {
             'user': forms.widgets.HiddenInput(),
             'is_active': forms.widgets.HiddenInput()

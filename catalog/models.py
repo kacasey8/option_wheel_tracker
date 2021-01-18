@@ -39,6 +39,28 @@ class StockTicker(models.Model):
     class Meta:
         ordering = ["name"]
 
+
+class Account(models.Model):
+    """Represents an account that can trade stocks options"""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
+
+    name = models.CharField(max_length=50, help_text='Enter an account name, like Robinhood.', db_index=True)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('account-detail', args=[str(self.id)])
+
+    class Meta:
+        ordering = ["name"]
+
+
 class OptionPurchase(models.Model):
     """Represents an option sold on a specific day"""
     user = models.ForeignKey(
@@ -83,6 +105,13 @@ class OptionWheel(models.Model):
     stock_ticker = models.ForeignKey(
         'StockTicker',
         on_delete=models.CASCADE,
+    )
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        db_index=True,
+        blank=True,
+        null=True,
     )
     quantity = models.IntegerField(default=1)
     is_active = models.BooleanField(db_index=True)
