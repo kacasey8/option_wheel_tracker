@@ -29,6 +29,7 @@ class AccountForm(forms.ModelForm):
         }
 
 class OptionWheelForm(forms.ModelForm):
+    account = forms.MultipleChoiceField(required=True)
     class Meta:
         model = OptionWheel
         fields = ('user', 'stock_ticker', 'account', 'quantity', 'is_active')
