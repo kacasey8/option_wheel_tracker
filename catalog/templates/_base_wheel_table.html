@@ -20,7 +20,7 @@
         <th>Return Rate{% if active %} (if exits){% endif %}</th>
         <th>Annual Rate{% if active %} (if exits){% endif %}</th>
         <th>Wheel Details</th>
-        {% if active and not all %}
+        {% if can_edit %}
           <th>Add Call</th>
           <th>Complete Wheel</th>
           <th>Edit Wheel</th>
@@ -77,7 +77,7 @@
           <td>
             <a type="button" class="btn btn-secondary btn-sm" href="{% url 'wheel-detail' pk=row.pk %}">Details</a>
           </td>
-          {% if active and not all %}
+          {% if can_edit %}
             <td>
               <a type="button" class="btn btn-primary btn-sm" href="{% url 'purchase-create' wheel_id=row.pk %}">Call</a>
             </td>
