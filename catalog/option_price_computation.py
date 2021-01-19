@@ -80,28 +80,29 @@ def compute_annualized_rate_of_return(profit_decimal, odds, days, profit_decimal
     return effective_rate_of_return ** (BUSINESS_DAYS_IN_YEAR / days)
 
 def get_current_price(stockticker_name):
-    cache_key = 'get_current_price_' + stockticker_name
-    cached_result = cache.get(cache_key)
-    if cached_result is not None:
-        return cached_result
-    yahoo_ticker = yfinance.Ticker(stockticker_name)
-    yahoo_ticker_history = yahoo_ticker.history(period="1d")
-    if yahoo_ticker_history.empty:
+    closes = _get_recent_closes(stockticker_name)
+    if closes is None:
         return None
-    result = yahoo_ticker_history.tail(1)['Close'].iloc[0]
-    cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
-    return result
+    # Second element, since 2 closes are saved in cache
+    return closes[1]
 
 def get_previous_close_price(stockticker_name):
-    cache_key = 'get_previous_close_price' + stockticker_name
+    closes = _get_recent_closes(stockticker_name)
+    if closes is None:
+        return None
+    # First element, since 2 closes are saved in cache
+    return closes[0]
+
+def _get_recent_closes(stockticker_name):
+    cache_key = 'get_recent_closes_' + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return cached_result
     yahoo_ticker = yfinance.Ticker(stockticker_name)
-    yahoo_ticker_history = yahoo_ticker.history(period="5d")
+    yahoo_ticker_history = yahoo_ticker.history(period="10d")
     if yahoo_ticker_history.empty:
         return None
-    result = yahoo_ticker_history.tail(2)['Close'].iloc[0]
+    result = yahoo_ticker_history.tail(2)['Close']
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
     return result
 
