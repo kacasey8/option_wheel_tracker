@@ -131,6 +131,7 @@ def my_active_wheels(request):
         wheel.add_purchase_data()
     context = {'wheel_user': user}
     context["wheels"] = wheels
+    context["can_edit"] = True
     return render(request, 'active_wheels.html', context=context)
 
 def active_wheels(request, pk):
@@ -140,6 +141,7 @@ def active_wheels(request, pk):
         wheel.add_purchase_data()
     context = {'wheel_user': user}
     context["wheels"] = wheels
+    context["can_edit"] = request.user == user
     return render(request, 'active_wheels.html', context=context)
 
 @login_required
