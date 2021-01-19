@@ -5,8 +5,11 @@
   <a href="{% url 'tickers' %}">All Tickers</a>
   <p><strong>Recommendation:</strong> {{ stockticker.recommendation }}</p>
   <p><strong>Current Price:</strong> ${{ current_price | floatformat:2 }}</p>
+  <p><strong>Total Wheels: </strong> {{ num_wheels }}</p>
   <a type="button" class="btn btn-primary" href="{% url 'ticker-update' pk=stockticker.pk %}">Edit</a>
-  <a type="button" class="btn btn-danger" href="{% url 'ticker-delete' pk=stockticker.pk %}" variant="danger">Delete</a>
+  {% if not num_wheels %}
+    <a type="button" class="btn btn-danger" href="{% url 'ticker-delete' pk=stockticker.pk %}" variant="danger">Delete</a>
+  {% endif %}
   <br>
   {% include '_option_put_table.html' %}
 {% endblock %}

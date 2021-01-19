@@ -73,9 +73,12 @@ class StockTickerDetailView(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(StockTickerDetailView, self).get_context_data(**kwargs)
+        num_wheels = OptionWheel.objects.filter(stock_ticker=self.object.id).count()
+
         result = get_put_stats_for_ticker(self.object.name)
         context['put_stats'] = sorted(result['put_stats'], key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
         context['current_price'] = result['current_price']
+        context['num_wheels'] = num_wheels
         return context
 
 class StockTickerCreate(generic.edit.CreateView):
