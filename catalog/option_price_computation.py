@@ -84,6 +84,8 @@ def get_current_price(stockticker_name):
     if closes is None:
         return None
     # Second element, since 2 closes are saved in cache
+    if len(closes) < 2:
+        return closes[0]
     return closes[1]
 
 def get_previous_close_price(stockticker_name):
