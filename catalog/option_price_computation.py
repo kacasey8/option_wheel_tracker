@@ -28,8 +28,13 @@ def _get_option_days(stockticker_name, maximum_option_days):
     if cached_result is not None:
         return cached_result
     yahoo_ticker = yfinance.Ticker(stockticker_name)
-    result = yahoo_ticker.options[:maximum_option_days]
-    cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+    try:
+        result = yahoo_ticker.options[:maximum_option_days]
+        cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+    except:
+        # On certain downloads yahoo finance might fail :(.
+        # Let's avoid caching in that case
+        result = None
 
     return result
 
@@ -115,6 +120,9 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_da
         return {'put_stats': [], 'current_price': None}
     put_stats = []
     option_days = _get_option_days(ticker_name, maximum_option_days)
+    if option_days is None:
+        # can happen if option days fails to download
+        return put_stats
     for option_day in option_days:
         puts = _get_option_chain(ticker_name, option_day, is_call=False)
         interesting_indicies = puts[puts['strike'].gt(current_price)].index
