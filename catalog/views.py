@@ -145,7 +145,7 @@ def active_wheels(request, pk):
 @login_required
 def my_completed_wheels(request):
     user = request.user
-    wheels = OptionWheel.objects.filter(user=user, is_active=True)
+    wheels = OptionWheel.objects.filter(user=user, is_active=False)
     for wheel in wheels:
         wheel.add_purchase_data()
     context = {'wheel_user': user}
@@ -154,7 +154,7 @@ def my_completed_wheels(request):
 
 def completed_wheels(request, pk):
     user = User.objects.get(pk=pk)
-    wheels = OptionWheel.objects.filter(user=user, is_active=True)
+    wheels = OptionWheel.objects.filter(user=user, is_active=False)
     for wheel in wheels:
         wheel.add_purchase_data()
     context = {'wheel_user': user}
