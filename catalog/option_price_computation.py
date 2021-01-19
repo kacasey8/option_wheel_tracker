@@ -122,7 +122,7 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_da
     option_days = _get_option_days(ticker_name, maximum_option_days)
     if option_days is None:
         # can happen if option days fails to download
-        return put_stats
+        return {'put_stats': [], 'current_price': None}
     for option_day in option_days:
         puts = _get_option_chain(ticker_name, option_day, is_call=False)
         interesting_indicies = puts[puts['strike'].gt(current_price)].index
