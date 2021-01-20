@@ -5,4 +5,4 @@ import numpy
 def busday_count_inclusive(start_date, end_date):
   if (start_date == end_date):
   	return 1
-  return np.busday_count(start_date, end_date) + 1
+  return numpy.busday_count(start_date, end_date) + 1
