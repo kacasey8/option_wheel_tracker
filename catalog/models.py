@@ -43,8 +43,6 @@ class StockTicker(models.Model):
 
     @property
     def change_today(self):
-        print(self.current_price)
-        print(get_previous_close_price(self.name))
         return self.current_price - get_previous_close_price(self.name)
 
     @property
@@ -88,6 +86,7 @@ class OptionPurchase(models.Model):
         'OptionWheel',
         on_delete=models.CASCADE,
         db_index=True,
+        related_name='option_purchases'
     )
     purchase_date = models.DateTimeField()
     expiration_date = models.DateField()

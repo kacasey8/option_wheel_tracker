@@ -129,7 +129,12 @@ class AccountDetailView(LoginRequiredMixin, generic.DetailView):
 @login_required
 def my_active_wheels(request):
     user = request.user
-    wheels = OptionWheel.objects.select_related('account').select_related('user').select_related('stock_ticker').filter(user=user, is_active=True)
+    wheels = OptionWheel.objects \
+        .select_related('account') \
+        .select_related('user') \
+        .select_related('stock_ticker') \
+        .prefetch_related('option_purchases') \
+        .filter(user=user, is_active=True)
     for wheel in wheels:
         wheel.add_purchase_data()
     context = {'wheel_user': user}
