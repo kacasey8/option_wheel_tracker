@@ -110,6 +110,9 @@ class OptionPurchase(models.Model):
     def get_absolute_url(self):
         return reverse('purchase-detail-view', args=[str(self.option_wheel.pk), str(self.id)])
 
+    class Meta:
+        ordering = ['-expiration_date', '-purchase_date']
+
 class OptionWheel(models.Model):
     """Referenced by multiple OptionPurchase objects to track profit from using the wheel strategy"""
     user = models.ForeignKey(
@@ -140,13 +143,13 @@ class OptionWheel(models.Model):
         return self.collatoral
 
     def get_all_option_purchases(self):
-         return OptionPurchase.objects.filter(option_wheel=self.id).order_by('-expiration_date', '-purchase_date')
+         return self.option_purchases.all()
      
     def get_first_option_purchase(self):
-        return OptionPurchase.objects.filter(option_wheel=self.id).order_by('purchase_date', 'expiration_date').first()
+        return self.option_purchases.all().last()
 
     def get_last_option_purchase(self):
-        return OptionPurchase.objects.filter(option_wheel=self.id).order_by('purchase_date', 'expiration_date').last()
+        return self.option_purchases.all().first()
     
     def get_open_date(self):
         first = self.get_first_option_purchase()
