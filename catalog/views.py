@@ -136,6 +136,7 @@ def my_active_wheels(request):
         .prefetch_related('option_purchases') \
         .filter(user=user, is_active=True)
     for wheel in wheels:
+        print("adding purchase data", wheel)
         wheel.add_purchase_data()
     context = {'wheel_user': user}
     context["wheels"] = wheels
