@@ -105,12 +105,15 @@ def _get_recent_closes(stockticker_name):
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return cached_result
+    start = time.time()
     yahoo_ticker = yfinance.Ticker(stockticker_name)
     yahoo_ticker_history = yahoo_ticker.history(period="10d")
     if yahoo_ticker_history.empty:
         return None
     result = yahoo_ticker_history.tail(2)['Close']
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
+    ending = time.time() - start
+    print(stockticker_name, ending)
     return result
 
 # only look at the 10 closest option days, so about 2 months weekly options
