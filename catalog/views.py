@@ -179,7 +179,7 @@ def all_active_wheels(request):
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def all_completed_wheels(request):
     context = {}
-    wheels = OptionWheel.objects.filter(is_active=False)
+    wheels = OptionWheel.objects.select_related('account').select_related('user').select_related('stock_ticker').filter(is_active=False)
     for wheel in wheels:
         wheel.add_purchase_data()
     context["wheels"] = wheels
