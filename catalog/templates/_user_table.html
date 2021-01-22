@@ -24,10 +24,10 @@
             <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.collateral | intcomma }}</a>
           </td>
           <td>
-            <a href="{% url 'user-active-wheels' pk=user.id %}">{{ user.active }}</a>
+            <a href="{% url 'user-active-wheels' pk=user.id %}">{{ user.active }} Active</a>
           </td>
           <td>
-            <a href="{% url 'user-completed-wheels' pk=user.id %}">{{ user.completed }}</a>
+            <a href="{% url 'user-completed-wheels' pk=user.id %}">{{ user.completed }} Completed</a>
           </td>
         </tr>
       {% endfor %}

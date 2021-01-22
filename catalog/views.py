@@ -159,7 +159,7 @@ def my_completed_wheels(request):
     user = request.user
     wheels = OptionWheel.objects.filter(user=user, is_active=False)
     for wheel in wheels:
-        wheel.add_purchase_data()
+        wheel.add_purchase_data(fetch_price=False)
     context = {'wheel_user': user}
     context["wheels"] = wheels
     return render(request, 'completed_wheels.html', context=context)
@@ -168,7 +168,7 @@ def completed_wheels(request, pk):
     user = User.objects.get(pk=pk)
     wheels = OptionWheel.objects.filter(user=user, is_active=False)
     for wheel in wheels:
-        wheel.add_purchase_data()
+        wheel.add_purchase_data(fetch_price=False)
     context = {'wheel_user': user}
     context["wheels"] = wheels
     return render(request, 'completed_wheels.html', context=context)
@@ -188,7 +188,7 @@ def all_completed_wheels(request):
     context = {}
     wheels = OptionWheel.objects.select_related('account').select_related('user').select_related('stock_ticker').filter(is_active=False)
     for wheel in wheels:
-        wheel.add_purchase_data()
+        wheel.add_purchase_data(fetch_price=False)
     context["wheels"] = wheels
     return render(request, 'all_completed_wheels.html', context=context)
 

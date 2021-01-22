@@ -12,7 +12,9 @@
         <th>Account</th>
         <th>Last Purchase</th>
         <th>Ticker</th>
-        <th>Last Price</th>
+        {% if active %}
+          <th>Last Price</th>
+        {% endif %}
         <th>Cost Basis</th>
         <th>Open Date</th>
         <th>Open Strike</th>
@@ -53,9 +55,11 @@
               ({{ row.quantity}}x)
             {% endif %}
           </td>
-          <td>
-            ${{ row.current_price | floatformat:2 }}
-          </td>
+          {% if active %}
+            <td>
+              ${{ row.current_price | floatformat:2 }}
+            </td>
+          {% endif %}
           <td>
             ${{ row.cost_basis }}
           </td>

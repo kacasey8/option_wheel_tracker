@@ -186,7 +186,7 @@ class OptionWheel(models.Model):
             return 'N/A'
         return sum(purchase.premium for purchase in purchases)
 
-    def add_purchase_data(self):
+    def add_purchase_data(self, fetch_price=True):
         purchases = self.get_all_option_purchases()
         if purchases:
             cost_basis = self.get_cost_basis()
@@ -214,7 +214,8 @@ class OptionWheel(models.Model):
             self.last_purchase = last_purchase
 
             self.expired = self.is_expired()
-            self.current_price = get_current_price(self.stock_ticker.name)
+            if fetch_price:
+                self.current_price = get_current_price(self.stock_ticker.name)
             self.purchases = purchases
 
 
