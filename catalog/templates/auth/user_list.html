@@ -3,16 +3,7 @@
 {% block content %}
   <h1>User List</h1>
   {% if user_list %}
-    <br>
-    <ul>
-      {% for user in user_list %}
-        <li>
-          {{ user.username }}: <a href="{% url 'user-total-profit' pk=user.id %}">Profit</a>,
-          <span><a href="{% url 'user-active-wheels' pk=user.id %}">Active Wheels</a></span>,
-          <span><a href="{% url 'user-completed-wheels' pk=user.id %}">Completed Wheels</a></span>
-        </li>
-      {% endfor %}
-    </ul>
+    {% include '_user_table.html' %}
   {% else %}
     <p>There are no users</p>
   {% endif %} 

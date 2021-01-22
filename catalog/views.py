@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import generic
 from django.contrib.auth.models import User
+from django.db.models import Count, Q, Sum, F, fields
 
 from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm, AccountForm
 from catalog.models import Account, OptionPurchase, StockTicker, OptionWheel
@@ -401,3 +402,10 @@ def _setup_context_for_total_profit(wheels, context):
 # User views
 class UserListView(generic.ListView):
     model = User
+
+    def get_queryset(self):
+        active = Count("optionwheel", filter=Q(optionwheel__is_active=True))
+        completed = Count("optionwheel", filter=Q(optionwheel__is_active=False))
+        profit = 100 * Sum(F("optionwheel__total_profit") * F("optionwheel__quantity"), output_field=fields.IntegerField())
+        collateral = 100 * Sum(F("optionwheel__collatoral") * F("optionwheel__quantity"), output_field=fields.IntegerField())
+        return User.objects.annotate(active=active, completed=completed, profit=profit, collateral=collateral)
