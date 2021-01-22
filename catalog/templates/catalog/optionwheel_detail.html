@@ -110,7 +110,7 @@
     {% for purchase in wheel_data.purchases %}
       <li>
         <a href="{{ purchase.get_absolute_url }}">{{ purchase }}</a>
-        Purchased on {{ purchase.purchase_date | date:"m/d" }} for
+        Opened position on {{ purchase.purchase_date | date:"m/d" }} for
       <strong>${{ purchase.premium }}</strong> premium
       <i>({{ wheel.stock_ticker }} at ${{ purchase.price_at_date }})</i>
       </li>
