@@ -17,17 +17,17 @@
           <td>
             {{ user.username }}
           </td>
-          <td>
+          <td data-order={{ user.profit }}>
             <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.profit | intcomma }}</a>
           </td>
-          <td>
+          <td data-order={{ user.collateral }}>
             <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.collateral | intcomma }}</a>
           </td>
           <td>
-            <a href="{% url 'user-active-wheels' pk=user.id %}">{{ user.active }} Active</a>
+            <a href="{% url 'user-active-wheels' pk=user.id %}">{{ user.active }}</a>
           </td>
           <td>
-            <a href="{% url 'user-completed-wheels' pk=user.id %}">{{ user.completed }} Completed</a>
+            <a href="{% url 'user-completed-wheels' pk=user.id %}">{{ user.completed }}</a>
           </td>
         </tr>
       {% endfor %}
