@@ -239,6 +239,9 @@ def complete_wheel(request, pk):
 def reactivate_wheel(request, pk):
     option_wheel = OptionWheel.objects.get(pk=pk)
     option_wheel.is_active = True
+    option_wheel.total_profit = None
+    option_wheel.total_days_active = None
+    option_wheel.collatoral = None
     option_wheel.save()
     return redirect('wheel-detail', pk=pk)
 
