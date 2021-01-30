@@ -38,10 +38,15 @@
   </p>
 
   <p>
-    <strong>Expiration Date:</strong> {{ wheel_data.expiration_date }}
-    {% if wheel_data.expired %}
-      <span class="badge badge-pill badge-warning">Expired</span>
-    {% endif %}
+    <div>
+      <strong>Open Date:</strong> {{ wheel_data.open_date }}
+    </div>
+    <div>
+      <strong>Expiration Date:</strong> {{ wheel_data.expiration_date }}
+      {% if wheel_data.expired %}
+        <span class="badge badge-pill badge-warning">Expired</span>
+      {% endif %}
+    </div>
   </p>
 
   <strong>Status:</strong>
@@ -110,7 +115,7 @@
     {% for purchase in wheel_data.purchases %}
       <li>
         <a href="{{ purchase.get_absolute_url }}">{{ purchase }}</a>
-        Opened position on {{ purchase.purchase_date | date:"m/d" }} for
+        Opened position on {{ purchase.purchase_date | date:"M j" }} for
       <strong>${{ purchase.premium }}</strong> premium
       <i>({{ wheel.stock_ticker }} at ${{ purchase.price_at_date }})</i>
       </li>

@@ -14,6 +14,7 @@ from .option_price_computation import (
 import numpy
 
 MARKET_CLOSE_HOUR = 13
+DATE_STRING_FORMAT = '%b %-d'
 
 
 class StockTicker(models.Model):
@@ -107,7 +108,7 @@ class OptionPurchase(models.Model):
     )
 
     def __str__(self):
-        return f"${self.strike} {self.call_or_put} {str(self.option_wheel.stock_ticker)} (exp. {self.expiration_date.strftime('%m/%d')})"
+        return f"${self.strike} {self.call_or_put} {str(self.option_wheel.stock_ticker)} (exp. {self.expiration_date.strftime(DATE_STRING_FORMAT)})"
 
     def get_absolute_url(self):
         return reverse('purchase-detail-view', args=[str(self.option_wheel.pk), str(self.id)])
@@ -209,10 +210,10 @@ class OptionWheel(models.Model):
             self.decimal_rate_of_return = decimal_rate_of_return
             self.annualized_rate_of_return_if_exits_here = annualized_rate_of_return_if_exits_here
 
-            self.open_date = self.get_open_date().strftime('%m/%d')
+            self.open_date = self.get_open_date()
             self.open_strike = first_purchase.strike
 
-            self.expiration_date = self.get_expiration_date().strftime('%m/%d')
+            self.expiration_date = self.get_expiration_date()
             self.last_purchase = last_purchase
 
             self.expired = self.is_expired()
@@ -229,8 +230,8 @@ class OptionWheel(models.Model):
             return f"{quantity_str}{self.stock_ticker}{account_str}"
         strike = last_purchase.strike
         call_or_put = last_purchase.call_or_put
-        open_date = self.get_open_date().strftime('%m/%d')
-        exp_date = self.get_expiration_date().strftime('%m/%d')
+        open_date = self.get_open_date().strftime(DATE_STRING_FORMAT)
+        exp_date = self.get_expiration_date().strftime(DATE_STRING_FORMAT)
         return f"{quantity_str}${strike} {call_or_put} {self.stock_ticker} (opened {open_date}, exp. {exp_date}){account_str}"
 
     def get_absolute_url(self):

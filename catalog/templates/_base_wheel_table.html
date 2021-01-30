@@ -2,7 +2,8 @@
 {% load filter_tags %}
 
 <div>
-  <table class="display compact wheel_table" style="width:100%">
+  <table 
+    class="display compact wheel_table" {% if not active %} data-order='[[ 0, "desc" ]]'{% endif %}>
     <thead>
       <tr>
         <th>Exp. Date</th>
@@ -32,8 +33,8 @@
     <tbody>
       {% for row in wheels %}
         <tr>
-          <td>
-            {{ row.expiration_date }}
+          <td data-order={{ row.expiration_date | date:"c" }}>
+            {{ row.expiration_date | date:"M j" }}
             {% if row.expired %}
               <span class="badge badge-pill badge-warning">Expired</span>
             {% endif %}
@@ -63,8 +64,8 @@
           <td>
             ${{ row.cost_basis }}
           </td>
-          <td>
-            {{ row.open_date }}
+          <td data-order={{ row.open_date | date:"c" }}>
+            {{ row.open_date | date:"M j"}}
           </td>
           <td>
             ${{ row.open_strike }}
