@@ -235,7 +235,8 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         # https://www.macroption.com/delta-calls-puts-probability-expiring-itm/ "Option’s delta as probability proxy"
         "max_profit_decimal": max_profit_decimal,
         "decimal_odds_out_of_the_money_implied": probability_out_of_the_money,
-        "annualized_rate_of_return_decimal": compute_annualized_rate_of_return(max_profit_decimal, probability_out_of_the_money, days_to_expiry)
+        "annualized_rate_of_return_decimal": compute_annualized_rate_of_return(max_profit_decimal, probability_out_of_the_money, days_to_expiry),
+        "current_price" : current_price
     }
 
     return stats
