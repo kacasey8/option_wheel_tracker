@@ -10,7 +10,7 @@
       <th>Ticker</th>
       <th>Strike</th>
       <th>Premium</th>
-      <th>Underlying Ticker Price</th>
+      <th>Ticker Price</th>
       <th>Calendar Days To Expiration</th>
       <th>Odds Out Of The Money %</th>
       <th>Maximum Return %</th>
@@ -30,7 +30,7 @@
           {{ put_stat.price }}
         </td>
         <td>
-          {{ put_stat.current_price }}
+          {{ put_stat.current_price | floatformat:2 }}
         </td>
         <td data-order={{ put_stat.days_to_expiry }}>
           {{ put_stat.days_to_expiry }} ({{put_stat.expiration_date}})
