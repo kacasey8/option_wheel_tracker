@@ -218,7 +218,14 @@ class OptionWheel(models.Model):
 
             self.expired = self.is_expired()
             if fetch_price:
-                self.current_price = get_current_price(self.stock_ticker.name)
+                current_price = get_current_price(self.stock_ticker.name)
+                self.current_price = current_price
+                if current_price >= last_purchase.strike:
+                    self.on_track = 'Exit'
+                elif current_price >= cost_basis:
+                    self.on_track = 'Hold'
+                else:
+                    self.on_track = 'Under'
             self.purchases = purchases
 
 
