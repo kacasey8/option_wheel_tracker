@@ -1,8 +1,8 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, reverse, redirect
 from django.urls import reverse_lazy
-from django.utils import timezone
 from django.views import generic
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum, F, fields
@@ -31,8 +31,17 @@ from django.core.cache import cache
 ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 60
 
 def _get_next_friday():
-    now = timezone.now()
-    return now + timedelta((3 - now.weekday()) % 7 + 1)
+    today = datetime.now().date()
+    return today + timedelta((3 - today.weekday()) % 7 + 1)
+
+def _get_last_trading_day():
+    now = datetime.now()
+    today = now.date()
+    if now.hour < settings.MARKET_OPEN_HOUR:
+        today -= timedelta(days=1)
+    while today.weekday() > 4:
+        today -= timedelta(days=1)
+    return today
 
 
 def index(request):
@@ -192,6 +201,22 @@ def all_completed_wheels(request):
     context["wheels"] = wheels
     return render(request, 'all_completed_wheels.html', context=context)
 
+@cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
+def todays_active_wheels(request):
+    date = _get_last_trading_day()
+    context = {}
+    wheels = OptionWheel.objects.filter(is_active=True)
+    todays_wheels = []
+    for wheel in wheels:
+        last_purchase = wheel.get_last_option_purchase()
+        if last_purchase:
+            if date == last_purchase.purchase_date.date():
+                wheel.add_purchase_data()
+                todays_wheels.append(wheel)
+    context["wheels"] = todays_wheels
+    context["date"] = date
+    return render(request, 'todays_active_wheels.html', context=context)
+
 
 class OptionWheelDetailView(generic.DetailView):
     model = OptionWheel
@@ -309,7 +334,7 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         if first_option_purchase:
             call_or_put = 'C'
             first_strike = first_option_purchase.strike
-        now = timezone.now()
+        now = datetime.now()
         return {
             'user': user, 
             'option_wheel': option_wheel,

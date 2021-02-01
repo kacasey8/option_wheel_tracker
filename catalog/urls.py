@@ -15,6 +15,7 @@ urlpatterns = [
     path('my_completed_wheels/', views.my_completed_wheels, name='my-completed-wheels'),
     path('all_active_wheels/', views.all_active_wheels, name='all-active-wheels'),
     path('all_completed_wheels/', views.all_completed_wheels, name='all-completed-wheels'),
+    path('todays_active_wheels/', views.todays_active_wheels, name='todays-active-wheels'),
     path('wheels/<int:pk>', views.OptionWheelDetailView.as_view(), name='wheel-detail'),
     path('wheels/<int:wheel_id>/purchase/<int:pk>', views.OptionPurchaseDetailView.as_view(), name='purchase-detail-view'),
     path('wheels/<int:wheel_id>/purchase/create/', views.OptionPurchaseCreate.as_view(), name='purchase-create'),

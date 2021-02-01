@@ -1,0 +1,14 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Todays Active Wheels ({{ date | date:"M j"}})</h1>
+
+  <p><a type="button" class="btn btn-primary" href="{% url 'wheel-create' %}">Start New Wheel</a></p>
+
+  {% if wheels %}
+    {% include '_base_wheel_table.html' with wheels=wheels active=True all=True%}
+  {% else %}
+    <p>There are no active wheels today</p>
+  {% endif %}
+
+{% endblock %}

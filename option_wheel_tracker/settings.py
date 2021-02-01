@@ -120,6 +120,9 @@ STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
 LOGIN_REDIRECT_URL = '/'
 
+MARKET_OPEN_HOUR = 6
+MARKET_CLOSE_HOUR = 13
+
 if app_stage == 'prod':
     import django_heroku
     # Activate Django-Heroku.

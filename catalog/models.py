@@ -11,10 +11,7 @@ from .option_price_computation import (
     get_previous_close_price
 )
 
-import numpy
-
-MARKET_CLOSE_HOUR = 13
-DATE_STRING_FORMAT = '%b %-d'
+DATE_DISPLAY_FORMAT = '%b %-d'
 
 
 class StockTicker(models.Model):
@@ -108,7 +105,7 @@ class OptionPurchase(models.Model):
     )
 
     def __str__(self):
-        return f"${self.strike} {self.call_or_put} {str(self.option_wheel.stock_ticker)} (exp. {self.expiration_date.strftime(DATE_STRING_FORMAT)})"
+        return f"${self.strike} {self.call_or_put} {str(self.option_wheel.stock_ticker)} (exp. {self.expiration_date.strftime(DATE_DISPLAY_FORMAT)})"
 
     def get_absolute_url(self):
         return reverse('purchase-detail-view', args=[str(self.option_wheel.pk), str(self.id)])
@@ -171,7 +168,7 @@ class OptionWheel(models.Model):
             return False
         now = datetime.now()
         today = now.date()
-        if now.hour >= MARKET_CLOSE_HOUR:
+        if now.hour >= settings.MARKET_CLOSE_HOUR:
             return self.get_expiration_date() <= today
         return self.get_expiration_date() < today
 
@@ -237,8 +234,8 @@ class OptionWheel(models.Model):
             return f"{quantity_str}{self.stock_ticker}{account_str}"
         strike = last_purchase.strike
         call_or_put = last_purchase.call_or_put
-        open_date = self.get_open_date().strftime(DATE_STRING_FORMAT)
-        exp_date = self.get_expiration_date().strftime(DATE_STRING_FORMAT)
+        open_date = self.get_open_date().strftime(DATE_DISPLAY_FORMAT)
+        exp_date = self.get_expiration_date().strftime(DATE_DISPLAY_FORMAT)
         return f"{quantity_str}${strike} {call_or_put} {self.stock_ticker} (opened {open_date}, exp. {exp_date}){account_str}"
 
     def get_absolute_url(self):
