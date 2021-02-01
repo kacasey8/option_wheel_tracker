@@ -63,11 +63,11 @@
             </td>
             <td>
               {% if row.on_track == 'Exit' %}
-                <span class="badge badge-pill badge-success">{{row.tracking}}</span>
+                <span class="badge badge-pill badge-success">{{row.on_track}}</span>
               {% elif row.on_track == 'Hold' %}
-                <span class="badge badge-pill badge-warning">{{row.tracking}}</span>
+                <span class="badge badge-pill badge-warning">{{row.on_track}}</span>
               {% elif row.on_track == 'Under'%}
-                <span class="badge badge-pill badge-danger">{{row.tracking}}</span>
+                <span class="badge badge-pill badge-danger">{{row.on_track}}</span>
               {% endif %}
             </td>
           {% endif %}
