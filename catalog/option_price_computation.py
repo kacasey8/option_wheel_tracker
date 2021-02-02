@@ -213,7 +213,11 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         # The price seems pretty stale. We should avoid computation since mibian's computation
         # will tend to time out in this case.
         return None
+
     RUN_NEW_FORUMLA = False
+    if interesting_put.impliedVolatility > 4.4:
+        # Mibian times out if the implied volatility is too high. In this case run the new formula.
+        RUN_NEW_FORUMLA = True
     if RUN_NEW_FORUMLA:
         delta = compute_delta(
             current_price=current_price,
