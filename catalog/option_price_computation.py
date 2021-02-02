@@ -230,6 +230,8 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         probability_out_of_the_money = 1 + delta
     else:
         probability_out_of_the_money = _get_odds_otm(current_price, strike, days_to_expiry, effective_price)
+    if numpy.isnan(probability_out_of_the_money):
+        return None
     max_profit_decimal = effective_price / strike
     stats = {
         "strike": strike,
