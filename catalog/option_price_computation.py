@@ -19,6 +19,8 @@ BUSINESS_DAYS_IN_YEAR = 252
 MINIMUM_VOLUME = 20
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.01
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.99
+IMPOSSIBLE_IMPLIED_VOLATILITY = 4.4
+
 
 YAHOO_FINANCE_CACHE_TIMEOUT = 5 * 60
 
@@ -215,7 +217,7 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         return None
 
     RUN_NEW_FORUMLA = False
-    if interesting_put.impliedVolatility > 4.4:
+    if interesting_put.impliedVolatility > IMPOSSIBLE_IMPLIED_VOLATILITY:
         # Mibian times out if the implied volatility is too high. In this case run the new formula.
         RUN_NEW_FORUMLA = True
     if RUN_NEW_FORUMLA:
@@ -281,6 +283,10 @@ def compute_call_stat(
     if effective_price > last_price * 1.1 or effective_price < last_price * 0.9:
         # The price seems pretty stale. We should avoid computation since mibian's computation
         # will tend to time out in this case.
+        return None
+    
+    if interesting_call.impliedVolatility > IMPOSSIBLE_IMPLIED_VOLATILITY:
+        # Bail early, since mibian will fail
         return None
     call_implied_volatility_calculator = mibian.BS([current_price, strike, INTEREST_RATE, days_to_expiry], callPrice=effective_price)
     # kinda silly, we need to construct another object to extract delta for a computation based on real call price
