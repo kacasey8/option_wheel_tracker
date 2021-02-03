@@ -1,14 +1,18 @@
 
+{% load filter_tags %}
 {% load humanize %}
 
-<table class="display compact user_table">
+<table class="display compact user_table" data-order='[[ 1, "desc" ]]'>
     <thead>
       <tr>
         <th>Username</th>
         <th>Total Profit ($)</th>
         <th>Total Collateral ($)</th>
+        <th>Return Percentage</th>
+        <th>Average Days</th>
         <th># Active Wheels</th>
         <th># Completed Wheels</th>
+        <th>Total Wheels (w/ Quantity)</th>
       </tr>
     </thead>
     <tbody>
@@ -17,17 +21,26 @@
           <td>
             {{ user.username }}
           </td>
-          <td data-order={{ user.profit }}>
+          <td>
             <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.profit | intcomma }}</a>
           </td>
-          <td data-order={{ user.collateral }}>
+          <td>
             <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.collateral | intcomma }}</a>
+          </td>
+          <td>
+            {{ user.return_percentage | percentage }}
+          </td>
+          <td>
+            {{ user.average_days | floatformat:2 }}
           </td>
           <td>
             <a href="{% url 'user-active-wheels' pk=user.id %}">{{ user.active }}</a>
           </td>
           <td>
             <a href="{% url 'user-completed-wheels' pk=user.id %}">{{ user.completed }}</a>
+          </td>
+          <td>
+            {{ user.total_wheels }}
           </td>
         </tr>
       {% endfor %}

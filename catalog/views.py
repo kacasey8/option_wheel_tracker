@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum, F, fields
+from django.db.models.functions import Coalesce, Round, Cast
 
 from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm, AccountForm
 from catalog.models import Account, OptionPurchase, StockTicker, OptionWheel
@@ -434,6 +435,24 @@ class UserListView(generic.ListView):
     def get_queryset(self):
         active = Count("optionwheel", filter=Q(optionwheel__is_active=True))
         completed = Count("optionwheel", filter=Q(optionwheel__is_active=False))
-        profit = 100 * Sum(F("optionwheel__total_profit") * F("optionwheel__quantity"), output_field=fields.IntegerField())
-        collateral = 100 * Sum(F("optionwheel__collatoral") * F("optionwheel__quantity"), output_field=fields.IntegerField())
-        return User.objects.annotate(active=active, completed=completed, profit=profit, collateral=collateral)
+        profit = Sum(F("optionwheel__total_profit") * F("optionwheel__quantity"),
+            filter=Q(optionwheel__is_active=False),
+            output_field=fields.DecimalField())
+        collateral = Sum(F("optionwheel__collatoral") * F("optionwheel__quantity"),
+            filter=Q(optionwheel__is_active=False),
+            output_field=fields.DecimalField())
+        total_wheels = Sum(F("optionwheel__quantity"),
+            filter=Q(optionwheel__is_active=False))
+        total_days_active = Sum(F("optionwheel__total_days_active") * F("optionwheel__quantity"),
+            filter=Q(optionwheel__is_active=False))
+        average_days = Cast(total_days_active, fields.FloatField()) / Cast(total_wheels, fields.FloatField()) 
+        users = User.objects.annotate(
+            active=active,
+            completed=completed, 
+            profit=Round(100 * Coalesce(profit, 0)),
+            collateral=Round(100 * Coalesce(collateral, 0)),
+            return_percentage=Coalesce(profit / collateral, 0),
+            total_wheels=Coalesce(total_wheels, 0),
+            average_days = Coalesce(average_days, 0)
+        )
+        return users
