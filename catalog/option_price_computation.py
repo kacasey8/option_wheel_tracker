@@ -23,7 +23,7 @@ IMPOSSIBLE_IMPLIED_VOLATILITY = 4.4
 
 
 YAHOO_FINANCE_CACHE_TIMEOUT = 5 * 60
-YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 6
+YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 12
 
 def _get_option_days(stockticker_name, maximum_option_days):
     cache_key = '_get_option_days' + stockticker_name + str(maximum_option_days)
