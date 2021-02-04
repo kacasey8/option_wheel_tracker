@@ -23,6 +23,7 @@ IMPOSSIBLE_IMPLIED_VOLATILITY = 4.4
 
 
 YAHOO_FINANCE_CACHE_TIMEOUT = 5 * 60
+YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 6
 
 def _get_option_days(stockticker_name, maximum_option_days):
     cache_key = '_get_option_days' + stockticker_name + str(maximum_option_days)
@@ -86,6 +87,30 @@ def compute_annualized_rate_of_return(profit_decimal, odds, days, profit_decimal
     effective_rate_of_return = rate_of_return_success_case * odds + rate_of_return_fail_case * (1 - odds)
     return effective_rate_of_return ** (BUSINESS_DAYS_IN_YEAR / days)
 
+def get_earnings(stockticker_name):
+    cache_key = 'get_earnings_' + stockticker_name
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+    start = time.time()
+    yahoo_ticker = yfinance.Ticker(stockticker_name)
+    result = False
+    calendar = yahoo_ticker.calendar
+    if 'Value' in calendar:
+        data = calendar['Value']
+        if 'Earnings Date' in data:
+            result = data['Earnings Date'].date()
+    elif not calendar.empty:
+        data = calendar[0]
+        if 'Earnings Date' in data:
+            result = data['Earnings Date'].date()
+
+    cache.set(cache_key, result, YAHOO_FINANCE_LONG_CACHE_TIMEOUT)
+    elapsed = time.time() - start
+    print('get_earnings', elapsed, result)
+    return result
+
+
 def get_current_price(stockticker_name):
     closes = _get_recent_closes(stockticker_name)
     if closes is None:
@@ -115,7 +140,7 @@ def _get_recent_closes(stockticker_name):
     result = yahoo_ticker_history.tail(2)['Close']
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
     ending = time.time() - start
-    print(stockticker_name, ending)
+    print('_get_recent_closes', stockticker_name, ending)
     return result
 
 # only look at the 10 closest option days, so about 2 months weekly options

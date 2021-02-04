@@ -2,10 +2,21 @@
 
 {% block content %}
   <h1>Wheel: {{ option_wheel }}</h1>
+
+  {% if earnings %}
+    <div class="alert alert-{{earnings_variant}}">
+      <strong>Next Earnings: </strong> {{ earnings | date:"M j" }}
+    </div>
+  {% else %}
+    <div class="alert alert-warning">
+      <strong>Next Earnings: </strong> Unknown
+    </div>
+  {% endif %}
+
   <p>
     <strong>Cost Basis:</strong> ${{ cost_basis }}
   </p>
-  <br>
+
   <form action="" method="post">
     {% csrf_token %}
     <table>

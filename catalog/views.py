@@ -17,7 +17,8 @@ from collections import defaultdict
 from .option_price_computation import (
     get_current_price,
     get_put_stats_for_ticker,
-    get_call_stats_for_option_wheel
+    get_call_stats_for_option_wheel,
+    get_earnings
 )
 from .business_day_count import busday_count_inclusive
 from .schedule_async import schedule_global_put_comparison_async, GLOBAL_PUT_CACHE_KEY
@@ -31,13 +32,16 @@ from django.core.cache import cache
 
 ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 60
 
+def _get_today():
+    return datetime.now().date()
+
 def _get_next_friday():
-    today = datetime.now().date()
+    today = _get_today()
     return today + timedelta((3 - today.weekday()) % 7 + 1)
 
 def _get_last_trading_day():
     now = datetime.now()
-    today = now.date()
+    today = _get_today()
     if now.hour < settings.MARKET_OPEN_HOUR:
         today -= timedelta(days=1)
     while today.weekday() > 4:
@@ -352,6 +356,19 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         context['option_wheel'] = option_wheel
         context['cost_basis'] = option_wheel.get_cost_basis()
         first_purchase = option_wheel.get_first_option_purchase()
+
+        earnings = get_earnings(option_wheel.stock_ticker.name)
+        if earnings:
+            variant = 'warning'
+            if earnings <= _get_next_friday():
+                variant = 'danger'
+            else:
+                days = (earnings - _get_today()).days
+                if days > 14:
+                    variant = 'success'
+            context['earnings'] = earnings
+            context['earnings_variant'] = variant
+
         if first_purchase is not None:
             last_purchase = option_wheel.get_last_option_purchase()
             days_active_so_far = busday_count_inclusive(
