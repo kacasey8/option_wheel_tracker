@@ -20,6 +20,9 @@ class StockTickerForm(forms.ModelForm):
         model = StockTicker
         fields = '__all__'
 
+    def clean_name(self):
+        return self.cleaned_data['name'].upper()
+
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
