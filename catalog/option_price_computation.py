@@ -96,14 +96,16 @@ def get_earnings(stockticker_name):
     yahoo_ticker = yfinance.Ticker(stockticker_name)
     result = False
     calendar = yahoo_ticker.calendar
+    earnings_date = None
     if 'Value' in calendar:
         data = calendar['Value']
-        if 'Earnings Date' in data:
-            result = data['Earnings Date'].date()
+        earnings_date = data.get('Earnings Date')
     elif not calendar.empty:
         data = calendar[0]
-        if 'Earnings Date' in data:
-            result = data['Earnings Date'].date()
+        earnings_date = data.get('Earnings Date')
+        
+    if earnings_date and earnings_date > datetime.now().date():
+        result = earnings_date.date()
 
     cache.set(cache_key, result, YAHOO_FINANCE_LONG_CACHE_TIMEOUT)
     elapsed = time.time() - start
