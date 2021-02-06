@@ -1,5 +1,7 @@
 $(document).ready(function () {
-  const table = $('table.user_table').DataTable();
+  const table = $('table.user_table').DataTable({
+    "pageLength": 50
+  });
   const columnNames = [];
   table.columns().every( function () {        
     columnNames.push(this.header().innerHTML);
