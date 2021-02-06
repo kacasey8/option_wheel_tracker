@@ -413,7 +413,7 @@ def total_profit(request, pk):
 def _setup_context_for_total_profit(wheels, context):
     total_profit = 0
     total_collateral = 0
-    sum_days = 0
+    sum_days_weighted_by_collateral = 0
     wheel_count = 0
     no_quantity_wheel_count = 0
     collateral_on_the_line_per_day = defaultdict(int)
@@ -424,7 +424,7 @@ def _setup_context_for_total_profit(wheels, context):
         total_profit += wheel_profit
         total_collateral += wheel_collateral
         wheel_count += wheel.quantity
-        sum_days += wheel.total_days_active * wheel.quantity
+        sum_days_weighted_by_collateral += wheel.total_days_active * wheel_collateral
         no_quantity_wheel_count += 1
         profit_per_day[wheel.get_expiration_date().strftime('%Y-%m-%d')] += float(wheel_profit)
         for day in pandas.bdate_range(wheel.get_open_date(), wheel.get_expiration_date()):
@@ -435,7 +435,7 @@ def _setup_context_for_total_profit(wheels, context):
     context["total_collateral_dollars"] = total_collateral * 100
     wheel_count = max([wheel_count, 1]) # avoid divide by 0
     total_collateral = max([total_collateral, 1])
-    context["total_days_active_average"] = sum_days / wheel_count
+    context["total_days_active_average"] = sum_days_weighted_by_collateral / total_collateral
     context["return_percentage"] = total_profit / total_collateral
     context["total_wheel_count"] = wheel_count
     context["no_quantity_wheel_count"] = no_quantity_wheel_count

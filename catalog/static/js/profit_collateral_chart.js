@@ -13,7 +13,7 @@ $(document).ready(function () {
   const profit_data = profit_per_day.sort().map((elem => {
     return {
       t: new Date(elem[0]),
-      y: elem[1]
+      y: Math.max(0, elem[1])
     }
   }));
 
@@ -50,11 +50,17 @@ $(document).ready(function () {
           id: 'A',
           type: 'linear',
           position: 'left',
-          label: 'a'
+          label: 'a',
+          ticks: {
+            beginAtZero: true
+          }
         }, {
           id: 'B',
           type: 'linear',
           position: 'right',
+          ticks: {
+            beginAtZero: true
+          },
         }]
       }
     }
