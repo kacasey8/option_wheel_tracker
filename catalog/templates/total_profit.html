@@ -12,6 +12,7 @@
   <p><strong>Total Collateral:</strong> {{ total_collateral | intcomma }}</p>
   <p><strong>Max Collateral At Any Point:</strong> {{ max_collateral | intcomma }}</p>
   <p><strong>Average Days:</strong> {{ total_days_active_average | floatformat:2 }}</p>
+  <p><strong>Annualized Rate of Return:</strong> {{ annualized_rate_of_return_decimal | floatformat:2 }}x</p>
   <p><strong>Return Percentage:</strong> {{ return_percentage | percentage }}</p>
   <p><strong>Total Profit Dollars:</strong> ${{ total_profit_dollars | intcomma }}</p>
   <p><strong>Total Collateral Dollars:</strong> ${{ total_collateral_dollars | intcomma }}</p>

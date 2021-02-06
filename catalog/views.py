@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum, F, fields
-from django.db.models.functions import Coalesce, Round, Cast
+from django.db.models.functions import Coalesce, Round, Cast, Power
 
 from catalog.forms import OptionPurchaseForm, StockTickerForm, SignupForm, OptionWheelForm, AccountForm
 from catalog.models import Account, OptionPurchase, StockTicker, OptionWheel
@@ -18,7 +18,9 @@ from .option_price_computation import (
     get_current_price,
     get_put_stats_for_ticker,
     get_call_stats_for_option_wheel,
-    get_earnings
+    get_earnings,
+    compute_annualized_rate_of_return,
+    BUSINESS_DAYS_IN_YEAR
 )
 from .business_day_count import busday_count_inclusive
 from .schedule_async import schedule_global_put_comparison_async, GLOBAL_PUT_CACHE_KEY
@@ -436,12 +438,14 @@ def _setup_context_for_total_profit(wheels, context):
     wheel_count = max([wheel_count, 1]) # avoid divide by 0
     total_collateral = max([total_collateral, 1])
     context["total_days_active_average"] = sum_days_weighted_by_collateral / total_collateral
-    context["return_percentage"] = total_profit / total_collateral
+    return_percentage = (float) (total_profit / total_collateral)
+    context["return_percentage"] = return_percentage
     context["total_wheel_count"] = wheel_count
     context["no_quantity_wheel_count"] = no_quantity_wheel_count
     context["collateral_on_the_line_per_day"] = json.dumps(list(collateral_on_the_line_per_day.items()))
     context["profit_per_day"] = json.dumps(list(profit_per_day.items()))
     context["max_collateral"] = max(collateral_on_the_line_per_day.values() or [0])
+    context["annualized_rate_of_return_decimal"] = compute_annualized_rate_of_return(return_percentage, 1, context["total_days_active_average"])
     return context
 
 
@@ -460,9 +464,10 @@ class UserListView(generic.ListView):
             output_field=fields.DecimalField())
         total_wheels = Sum(F("optionwheel__quantity"),
             filter=Q(optionwheel__is_active=False))
-        total_days_active = Sum(F("optionwheel__total_days_active") * F("optionwheel__quantity"),
+        total_days_active_weighted_by_collateral = Sum(F("optionwheel__total_days_active") * F("optionwheel__quantity") * F("optionwheel__collatoral"),
             filter=Q(optionwheel__is_active=False))
-        average_days = Cast(total_days_active, fields.FloatField()) / Cast(total_wheels, fields.FloatField()) 
+        average_days = Cast(total_days_active_weighted_by_collateral, fields.FloatField()) / Cast(collateral, fields.FloatField())
+        annualized_rate_of_return = Power(1 + profit / collateral, BUSINESS_DAYS_IN_YEAR / Coalesce(average_days, 252))
         users = User.objects.annotate(
             active=active,
             completed=completed, 
@@ -470,6 +475,7 @@ class UserListView(generic.ListView):
             collateral=Round(100 * Coalesce(collateral, 0)),
             return_percentage=Coalesce(profit / collateral, 0),
             total_wheels=Coalesce(total_wheels, 0),
-            average_days = Coalesce(average_days, 0)
+            average_days = Coalesce(average_days, 0),
+            annualized_rate_of_return=Coalesce(annualized_rate_of_return, 0),
         )
         return users

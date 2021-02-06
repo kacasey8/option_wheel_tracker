@@ -10,6 +10,7 @@
         <th>Total Collateral ($)</th>
         <th>Return Percentage</th>
         <th>Average Days</th>
+        <th>Annualized Rate of Return</th>
         <th># Active Wheels</th>
         <th># Completed Wheels</th>
         <th>Total Wheels Completed (w/ Quantity)</th>
@@ -32,6 +33,9 @@
           </td>
           <td>
             {{ user.average_days | floatformat:2 }}
+          </td>
+          <td data-order={{ user.annualized_rate_of_return }}>
+            {{ user.annualized_rate_of_return | floatformat:2 }}x
           </td>
           <td>
             <a href="{% url 'user-active-wheels' pk=user.id %}">{{ user.active }}</a>
