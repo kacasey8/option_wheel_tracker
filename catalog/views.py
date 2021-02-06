@@ -437,7 +437,8 @@ def _setup_context_for_total_profit(wheels, context):
     context["total_collateral_dollars"] = total_collateral * 100
     wheel_count = max([wheel_count, 1]) # avoid divide by 0
     total_collateral = max([total_collateral, 1])
-    context["total_days_active_average"] = sum_days_weighted_by_collateral / total_collateral
+    total_days_active_average = (float) (sum_days_weighted_by_collateral / total_collateral)
+    context["total_days_active_average"] = total_days_active_average
     return_percentage = (float) (total_profit / total_collateral)
     context["return_percentage"] = return_percentage
     context["total_wheel_count"] = wheel_count
@@ -445,7 +446,7 @@ def _setup_context_for_total_profit(wheels, context):
     context["collateral_on_the_line_per_day"] = json.dumps(list(collateral_on_the_line_per_day.items()))
     context["profit_per_day"] = json.dumps(list(profit_per_day.items()))
     context["max_collateral"] = max(collateral_on_the_line_per_day.values() or [0])
-    context["annualized_rate_of_return_decimal"] = compute_annualized_rate_of_return(return_percentage, 1, context["total_days_active_average"])
+    context["annualized_rate_of_return_decimal"] = compute_annualized_rate_of_return(return_percentage, 1, total_days_active_average)
     return context
 
 
