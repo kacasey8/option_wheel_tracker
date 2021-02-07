@@ -23,7 +23,7 @@ IMPOSSIBLE_IMPLIED_VOLATILITY = 4.4
 
 
 YAHOO_FINANCE_CACHE_TIMEOUT = 5 * 60
-YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 12
+YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 24
 
 def _get_option_days(stockticker_name, maximum_option_days):
     cache_key = '_get_option_days' + stockticker_name + str(maximum_option_days)
@@ -94,22 +94,23 @@ def get_earnings(stockticker_name):
         return cached_result
     start = time.time()
     yahoo_ticker = yfinance.Ticker(stockticker_name)
-    result = False
     calendar = yahoo_ticker.calendar
+    result = False
     earnings_date = None
-    if 'Value' in calendar:
-        data = calendar['Value']
-        earnings_date = data.get('Earnings Date')
-    elif not calendar.empty:
-        data = calendar[0]
-        earnings_date = data.get('Earnings Date')
+    if yahoo_ticker.calendar is not None and not calendar.empty:
+        if 'Value' in calendar:
+            data = calendar['Value']
+            earnings_date = data.get('Earnings Date')
+        else:
+            data = calendar[0]
+            earnings_date = data.get('Earnings Date')
         
     if earnings_date and earnings_date > datetime.now().date():
         result = earnings_date.date()
 
     cache.set(cache_key, result, YAHOO_FINANCE_LONG_CACHE_TIMEOUT)
     elapsed = time.time() - start
-    print('get_earnings', elapsed, result)
+    print('get_earnings', stockticker_name, elapsed, result)
     return result
 
 
