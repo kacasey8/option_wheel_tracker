@@ -1,8 +1,21 @@
 {% extends "base_generic.html" %}
 
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
 {% block content %}
   <h1>Stock Ticker: {{ stockticker.name }}</h1>
-  <a href="{% url 'tickers' %}">All Tickers</a>
+  <p><a type="button" class="btn btn-primary" href="{% url 'tickers' %}">All Tickers</a></p>
+
+  {% if earnings %}
+    <div class="alert alert-{{earnings_variant}}">
+      <strong>Next Earnings: </strong> {{ earnings | date:"M j" }}
+    </div>
+  {% else %}
+    <div class="alert alert-warning">
+      <strong>Next Earnings: </strong> Unknown
+    </div>
+  {% endif %}
   <p><strong>Recommendation:</strong> {{ stockticker.recommendation }}</p>
   <p><strong>Current Price:</strong> ${{ current_price | floatformat:2 }}</p>
   <p><strong>Total Wheels: </strong> {{ num_wheels }}</p>

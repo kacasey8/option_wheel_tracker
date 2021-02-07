@@ -50,6 +50,19 @@ def _get_last_trading_day():
         today -= timedelta(days=1)
     return today
 
+def _inject_earnings(context, stockticker_name):
+    earnings = get_earnings(stockticker_name)
+    if earnings:
+        variant = 'warning'
+        if earnings <= _get_next_friday():
+            variant = 'danger'
+        else:
+            days = (earnings - _get_today()).days
+            if days > 14:
+                variant = 'success'
+        context['earnings'] = earnings
+        context['earnings_variant'] = variant
+
 
 def index(request):
     return render(request, 'index.html')
@@ -91,7 +104,7 @@ class StockTickerDetailView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(StockTickerDetailView, self).get_context_data(**kwargs)
         num_wheels = OptionWheel.objects.filter(stock_ticker=self.object.id).count()
-
+        _inject_earnings(context, self.object.name)
         result = get_put_stats_for_ticker(self.object.name)
         context['put_stats'] = sorted(result['put_stats'], key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
         context['current_price'] = result['current_price']
@@ -357,20 +370,8 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get('wheel_id'))
         context['option_wheel'] = option_wheel
         context['cost_basis'] = option_wheel.get_cost_basis()
+        _inject_earnings(context, option_wheel.stock_ticker.name)
         first_purchase = option_wheel.get_first_option_purchase()
-
-        earnings = get_earnings(option_wheel.stock_ticker.name)
-        if earnings:
-            variant = 'warning'
-            if earnings <= _get_next_friday():
-                variant = 'danger'
-            else:
-                days = (earnings - _get_today()).days
-                if days > 14:
-                    variant = 'success'
-            context['earnings'] = earnings
-            context['earnings_variant'] = variant
-
         if first_purchase is not None:
             last_purchase = option_wheel.get_last_option_purchase()
             days_active_so_far = busday_count_inclusive(
