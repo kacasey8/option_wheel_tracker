@@ -93,21 +93,26 @@ def get_earnings(stockticker_name):
     if cached_result is not None:
         return cached_result
     start = time.time()
-    yahoo_ticker = yfinance.Ticker(stockticker_name)
-    calendar = yahoo_ticker.calendar
     result = False
     earnings_date = None
-    if yahoo_ticker.calendar is not None and not calendar.empty:
-        if 'Value' in calendar:
-            data = calendar['Value']
-            earnings_date = data.get('Earnings Date')
-        else:
-            data = calendar[0]
-            earnings_date = data.get('Earnings Date')
-        
-    if earnings_date and earnings_date > datetime.now().date():
-        result = earnings_date.date()
-
+    try:
+        yahoo_ticker = yfinance.Ticker(stockticker_name)
+        calendar = yahoo_ticker.calendar
+        if yahoo_ticker.calendar is not None and not calendar.empty:
+            if 'Value' in calendar:
+                data = calendar['Value']
+                earnings_date = data.get('Earnings Date')
+            else:
+                data = calendar[0]
+                earnings_date = data.get('Earnings Date')
+            
+            # Only care about future earnings dates.
+            if earnings_date and earnings_date > datetime.now().date():
+                result = earnings_date.date()
+    except:
+        # Handle yahoo finance download failure.
+        result = None
+    
     cache.set(cache_key, result, YAHOO_FINANCE_LONG_CACHE_TIMEOUT)
     elapsed = time.time() - start
     print('get_earnings', stockticker_name, elapsed, result)
