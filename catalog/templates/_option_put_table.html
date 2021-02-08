@@ -34,6 +34,9 @@
         </td>
         <td data-order={{ put_stat.days_to_expiry }}>
           {{ put_stat.days_to_expiry }} ({{put_stat.expiration_date}})
+          {% if put_stat.includes_earnings %}
+            <span class="badge badge-pill badge-danger">Earnings</span>
+          {% endif %}
         </td>
         <td>
           {{ put_stat.decimal_odds_out_of_the_money_implied | percentage }}

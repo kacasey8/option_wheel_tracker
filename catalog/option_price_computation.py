@@ -149,6 +149,7 @@ def _get_recent_closes(stockticker_name):
 # only look at the 10 closest option days, so about 2 months weekly options
 def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_day_to_consider=10):
     current_price = get_current_price(ticker_name)
+    earnings = get_earnings(ticker_name)
     if current_price is None:
         return {'put_stats': [], 'current_price': None}
     put_stats = []
@@ -177,6 +178,8 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_da
             )
             if put_stat is not None:
                 put_stat.update({"ticker": ticker_name})
+                if earnings and earnings <= option_day_as_date_object:
+                    put_stat.update({"includes_earnings": True})
                 put_stats.append(put_stat)
     return {'put_stats': put_stats, 'current_price': current_price}
 
@@ -184,6 +187,7 @@ def get_put_stats_for_ticker(ticker_name, maximum_option_days=10, options_per_da
 def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, collateral, maximum_option_days=10):
     yahoo_ticker = yfinance.Ticker(ticker_name)
     current_price = get_current_price(ticker_name)
+    earnings = get_earnings(ticker_name)
     if current_price is None:
         return {'call_stats': [], 'current_price': None}
     call_stats = []
@@ -213,6 +217,8 @@ def get_call_stats_for_option_wheel(ticker_name, days_active_so_far, revenue, co
             )
             if call_stat is not None:
                 call_stat.update({"ticker": ticker_name})
+                if earnings and earnings <= option_day_as_date_object:
+                    call_stat.update({"includes_earnings": True})
                 call_stats.append(call_stat)
     return {'call_stats': call_stats, 'current_price': current_price}
 

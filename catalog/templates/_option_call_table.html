@@ -45,6 +45,9 @@ the days to expiry</p>
         </td>
         <td data-order={{ call_stat.days_to_expiry }}>
           {{ call_stat.days_to_expiry }} ({{call_stat.expiration_date}})
+          {% if call_stat.includes_earnings %}
+            <span class="badge badge-pill badge-danger">Earnings</span>
+          {% endif %}
         </td>
         <td>
           {{ call_stat.decimal_odds_out_of_the_money_implied | percentage }}
