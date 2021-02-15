@@ -228,7 +228,7 @@ class OptionWheel(models.Model):
 
     def __str__(self):
         last_purchase = self.get_last_option_purchase()
-        quantity_str = f"({self.quantity}X) " if self.quantity > 1 else ""
+        quantity_str = f"({self.quantity}) " if self.quantity > 1 else ""
         account_str = f" [{self.account}]" if self.account else ""
         if not last_purchase:
             return f"{quantity_str}{self.stock_ticker}{account_str}"

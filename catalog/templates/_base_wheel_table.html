@@ -52,9 +52,9 @@
             ${{ row.last_purchase.strike }} {{ row.last_purchase.call_or_put | call_or_put }}
           </td>
           <td>
-            {{ row.stock_ticker }}
+            <a href="{{ row.stock_ticker.get_absolute_url }}">{{ row.stock_ticker }}</a> 
             {% if row.quantity > 1 %}
-              ({{ row.quantity}}x)
+              <strong>({{ row.quantity}})</strong>
             {% endif %}
           </td>
           {% if active %}

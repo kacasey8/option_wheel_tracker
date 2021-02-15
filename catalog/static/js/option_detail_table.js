@@ -1,6 +1,6 @@
 $(document).ready(function () {
   const table = $('#option_detail_table').DataTable({
-    "pageLength": 20
+    "pageLength": 25
   });
   const columnNames = [];
   table.columns().every( function () {        

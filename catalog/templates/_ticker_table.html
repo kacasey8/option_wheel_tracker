@@ -1,0 +1,31 @@
+
+{% load filter_tags %}
+
+<table class="display compact ticker_table">
+    <thead>
+      <tr>
+        <th>Ticker</th>
+        <th>Current Price</th>
+        <th>Change Today</th>
+        <th>% Change Today</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticker in stockticker_list %}
+        <tr>
+          <td>
+            <a href="{{ ticker.get_absolute_url }}">{{ ticker }}</a> 
+          </td>
+          <td>
+            ${{ ticker.current_price | floatformat:2 }}
+          </td>
+          <td>
+            {{ ticker.change_today | floatformat:2 }}
+          </td>
+          <td>
+            {{ ticker.percent_change_today | percentage }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>

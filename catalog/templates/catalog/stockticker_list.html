@@ -8,19 +8,10 @@
   <br>
 
   {% if stockticker_list %}
-  <br>
-  <ul>
-    {% for stockticker in stockticker_list %}
-      <li>
-        <a href="{{ stockticker.get_absolute_url }}">{{ stockticker.name }}</a> {{ stockticker.current_price | floatformat:2 }}
-        {{ stockticker.change_today | floatformat:2 }}
-        ({{ stockticker.percent_change_today | percentage }})
-      </li>
-    {% endfor %}
-  </ul>
-  <div>
-    <a href="{% url 'global-put-comparison' %}">All Stock Put Options Combined</a> (will take time to load)
-  </div>
+    <div>
+      <a href="{% url 'global-put-comparison' %}">All Stock Put Options Combined</a> (will take time to load)
+    </div>
+    {% include '_ticker_table.html' %}
   {% else %}
     <p>There are no stock tickers</p>
   {% endif %} 

@@ -35,7 +35,7 @@ the days to expiry</p>
     {% for call_stat in call_stats %}
       <tr>
         <td>
-          {{ call_stat.ticker }}
+          <a href="{{ call_stat.ticker.get_absolute_url }}">{{ call_stat.ticker }}</a> 
         </td>
         <td>
           {{ call_stat.strike }}

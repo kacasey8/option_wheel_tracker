@@ -21,7 +21,7 @@
     {% for put_stat in put_stats %}
       <tr>
         <td>
-          {{ put_stat.ticker }}
+          <a href="{{ put_stat.ticker.get_absolute_url }}">{{ put_stat.ticker }}</a> 
         </td>
         <td>
           {{ put_stat.strike }}
