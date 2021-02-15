@@ -105,7 +105,7 @@ class StockTickerDetailView(generic.DetailView):
         context = super(StockTickerDetailView, self).get_context_data(**kwargs)
         num_wheels = OptionWheel.objects.filter(stock_ticker=self.object.id).count()
         _inject_earnings(context, self.object.name)
-        result = get_put_stats_for_ticker(self.object.name)
+        result = get_put_stats_for_ticker(self.object)
         context['put_stats'] = sorted(result['put_stats'], key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
         context['current_price'] = result['current_price']
         context['num_wheels'] = num_wheels
@@ -378,7 +378,7 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
                 first_purchase.purchase_date.date(),
                 last_purchase.expiration_date,
             )
-            call_stats = get_call_stats_for_option_wheel(option_wheel.stock_ticker.name, days_active_so_far, option_wheel.get_revenue(), collateral=first_purchase.strike)
+            call_stats = get_call_stats_for_option_wheel(option_wheel.stock_ticker, days_active_so_far, option_wheel.get_revenue(), collateral=first_purchase.strike)
             context['call_stats'] = call_stats['call_stats']
         return context
 

@@ -21,7 +21,7 @@ def schedule_global_put_comparison_async():
 def _run_global_put_comparison():
   put_stats = []
   for stock_ticker in StockTicker.objects.all():
-    put_stats += get_put_stats_for_ticker(stock_ticker.name, maximum_option_days=2, options_per_day_to_consider=3)['put_stats']
+    put_stats += get_put_stats_for_ticker(stock_ticker, maximum_option_days=2, options_per_day_to_consider=3)['put_stats']
   result = sorted(put_stats, key=lambda put: put['annualized_rate_of_return_decimal'], reverse=True)
   cache.set(GLOBAL_PUT_CACHE_KEY, result, GLOBAL_PUT_TIMEOUT_SECONDS)
   return result
