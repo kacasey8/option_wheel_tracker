@@ -65,4 +65,17 @@ $(document).ready(function () {
       }
     }
   });
+
+  $('#show_negative_profits').change( function() {
+    const showNegativeProfits = $('#show_negative_profits').is(":checked");
+    const profit_data = profit_per_day.sort().map((elem => {
+      return {
+        t: new Date(elem[0]),
+        y: showNegativeProfits ? elem[1]: Math.max(0, elem[1])
+      }
+    }));
+    myChart.data.datasets[1].data = profit_data;
+    myChart.update();
+  });
+
 });

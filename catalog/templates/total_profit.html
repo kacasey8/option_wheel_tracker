@@ -18,6 +18,10 @@
   <p><strong>Total Collateral Dollars:</strong> ${{ total_collateral_dollars | intcomma }}</p>
   <p><strong>Total Wheels Finished:</strong> {{ no_quantity_wheel_count | intcomma }}</p>
   <p><strong>Total Wheels Finished Including Quantity:</strong> {{ total_wheel_count | intcomma }}</p>
+  <div>
+    <label for="show_negative_profits">Show Negative Profits</label>
+    <input type="checkbox" id="show_negative_profits" name="show_negative_profits">
+  </div>
   <div class="container">
     <canvas id="profit_collateral_chart"></canvas>
   </div>
