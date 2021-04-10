@@ -64,6 +64,16 @@ def _inject_earnings(context, stockticker_name):
         context['earnings_variant'] = variant
 
 
+class PageTitleMixin(object):
+  def get_page_title(self, context):
+    return getattr(self, "page_title", "Option Wheel")
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context["page_title"] = self.get_page_title(context)
+    return context
+
+
 def index(request):
     return render(request, 'index.html')
 
@@ -95,10 +105,11 @@ def global_put_comparison(request):
 
 
 # StockTicker views
-class StockTickerListView(generic.ListView):
+class StockTickerListView(PageTitleMixin, generic.ListView):
+    page_title = "Tickers"
     model = StockTicker
  
-class StockTickerDetailView(generic.DetailView):
+class StockTickerDetailView(PageTitleMixin, generic.DetailView):
     model = StockTicker
 
     def get_context_data(self, **kwargs):
@@ -111,28 +122,42 @@ class StockTickerDetailView(generic.DetailView):
         context['num_wheels'] = num_wheels
         return context
 
-class StockTickerCreate(generic.edit.CreateView):
+    def get_page_title(self, context):
+        return self.object.name
+
+
+class StockTickerCreate(PageTitleMixin, generic.edit.CreateView):
+    page_title = "Create Ticker"
     model = StockTicker
     form_class = StockTickerForm
     success_url = reverse_lazy('tickers')
 
-class StockTickerUpdate(generic.edit.UpdateView):
+
+class StockTickerUpdate(PageTitleMixin, generic.edit.UpdateView):
     model = StockTicker
     form_class = StockTickerForm
     success_url = reverse_lazy('tickers')
 
-class StockTickerDelete(generic.edit.DeleteView):
+    def get_page_title(self, context):
+        return f"Update {self.object.name} Ticker"
+
+class StockTickerDelete(PageTitleMixin, generic.edit.DeleteView):
     model = StockTicker
     success_url = reverse_lazy('tickers')
+
+    def get_page_title(self, context):
+        return f"Delete {self.object.name} Ticker"
 
 # Account views
-class MyAccountsListView(LoginRequiredMixin, generic.ListView):
+class MyAccountsListView(PageTitleMixin, LoginRequiredMixin, generic.ListView):
+    page_title = "My Accounts"
     model = Account
 
     def get_queryset(self):
         return Account.objects.filter(user=self.request.user)
 
-class AccountCreate(LoginRequiredMixin, generic.edit.CreateView):
+class AccountCreate(PageTitleMixin, LoginRequiredMixin, generic.edit.CreateView):
+    page_title = "Create Account"
     model = Account
     form_class = AccountForm
     success_url = reverse_lazy('my-accounts')
@@ -143,17 +168,26 @@ class AccountCreate(LoginRequiredMixin, generic.edit.CreateView):
             'user': user
         }
 
-class AccountUpdate(LoginRequiredMixin, generic.edit.UpdateView):
+class AccountUpdate(PageTitleMixin, LoginRequiredMixin, generic.edit.UpdateView):
     model = Account
     form_class = AccountForm
     success_url = reverse_lazy('my-accounts')
 
-class AccountDelete(LoginRequiredMixin, generic.edit.DeleteView):
+    def get_page_title(self, context):
+        return f"Update {self.object.name} Account"
+
+class AccountDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.DeleteView):
     model = Account
     success_url = reverse_lazy('my-accounts')
 
-class AccountDetailView(LoginRequiredMixin, generic.DetailView):
+    def get_page_title(self, context):
+        return f"Delete {self.object.name} Account"
+
+class AccountDetailView(PageTitleMixin, LoginRequiredMixin, generic.DetailView):
     model = Account
+
+    def get_page_title(self, context):
+        return f"{self.object.name} Account"
 
 # OptionWheel views
 @login_required
@@ -171,6 +205,7 @@ def my_active_wheels(request):
     context = {'wheel_user': user}
     context["wheels"] = wheels
     context["can_edit"] = True
+    context["page_title"] = "My Active Wheels"
     return render(request, 'active_wheels.html', context=context)
 
 def active_wheels(request, pk):
@@ -181,6 +216,7 @@ def active_wheels(request, pk):
     context = {'wheel_user': user}
     context["wheels"] = wheels
     context["can_edit"] = request.user == user
+    context["page_title"] = f"{user}'s Active Wheels"
     return render(request, 'active_wheels.html', context=context)
 
 @login_required
@@ -191,6 +227,7 @@ def my_completed_wheels(request):
         wheel.add_purchase_data(fetch_price=False)
     context = {'wheel_user': user}
     context["wheels"] = wheels
+    context["page_title"] = "My Completed Wheels"
     return render(request, 'completed_wheels.html', context=context)
 
 def completed_wheels(request, pk):
@@ -200,6 +237,7 @@ def completed_wheels(request, pk):
         wheel.add_purchase_data(fetch_price=False)
     context = {'wheel_user': user}
     context["wheels"] = wheels
+    context["page_title"] = f"{user}'s Completed Wheels"
     return render(request, 'completed_wheels.html', context=context)
 
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
@@ -209,6 +247,7 @@ def all_active_wheels(request):
     for wheel in wheels:
         wheel.add_purchase_data()
     context["wheels"] = wheels
+    context["page_title"] = "All Active Wheels"
     return render(request, 'all_active_wheels.html', context=context)
 
 
@@ -219,6 +258,7 @@ def all_completed_wheels(request):
     for wheel in wheels:
         wheel.add_purchase_data(fetch_price=False)
     context["wheels"] = wheels
+    context["page_title"] = "All Completed Wheels"
     return render(request, 'all_completed_wheels.html', context=context)
 
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
@@ -235,10 +275,11 @@ def todays_active_wheels(request):
                 todays_wheels.append(wheel)
     context["wheels"] = todays_wheels
     context["date"] = date
+    context["page_title"] = "Today's Active Wheels"
     return render(request, 'todays_active_wheels.html', context=context)
 
 
-class OptionWheelDetailView(generic.DetailView):
+class OptionWheelDetailView(PageTitleMixin, generic.DetailView):
     model = OptionWheel
     context_object_name = 'wheel'
 
@@ -250,6 +291,9 @@ class OptionWheelDetailView(generic.DetailView):
         context["wheel_data"] = option_wheel
         context["can_edit"] = option_wheel.user == self.request.user
         return context
+
+    def get_page_title(self, context):
+        return self.object
 
 
 @login_required
@@ -290,7 +334,8 @@ def reactivate_wheel(request, pk):
     option_wheel.save()
     return redirect('wheel-detail', pk=pk)
 
-class OptionWheelCreate(generic.edit.CreateView):
+class OptionWheelCreate(PageTitleMixin, generic.edit.CreateView):
+    page_title = "Create Wheel"
     model = OptionWheel
     form_class = OptionWheelForm
 
@@ -309,7 +354,7 @@ class OptionWheelCreate(generic.edit.CreateView):
     def get_success_url(self):
         return reverse('purchase-create', args=[str(self.object.id)])
 
-class OptionWheelUpdate(generic.edit.UpdateView):
+class OptionWheelUpdate(PageTitleMixin, generic.edit.UpdateView):
     model = OptionWheel
     form_class = OptionWheelForm
 
@@ -321,13 +366,19 @@ class OptionWheelUpdate(generic.edit.UpdateView):
     def get_success_url(self):
         return reverse('wheel-detail', args=[str(self.object.id)])
 
-class OptionWheelDelete(LoginRequiredMixin, generic.edit.DeleteView):
+    def get_page_title(self, context):
+        return f"Update {self.object}"
+
+class OptionWheelDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionWheel
     success_url = reverse_lazy('my-active-wheels')
 
+    def get_page_title(self, context):
+        return f"Delete {self.object}"
+
 
 # OptionPurchase views
-class OptionPurchaseDetailView(LoginRequiredMixin, generic.DetailView):
+class OptionPurchaseDetailView(PageTitleMixin, LoginRequiredMixin, generic.DetailView):
     model = OptionPurchase
 
     def get_context_data(self, **kwargs):
@@ -335,7 +386,11 @@ class OptionPurchaseDetailView(LoginRequiredMixin, generic.DetailView):
         context["can_edit"] = self.object.user == self.request.user
         return context
 
-class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
+    def get_page_title(self, context):
+        return f"Option: {self.object}"
+
+class OptionPurchaseCreate(PageTitleMixin, LoginRequiredMixin, generic.edit.CreateView):
+    page_title = "Create Option"
     model = OptionPurchase
     form_class = OptionPurchaseForm
 
@@ -386,30 +441,41 @@ class OptionPurchaseCreate(LoginRequiredMixin, generic.edit.CreateView):
         wheel_id = self.kwargs.get('wheel_id')
         return reverse('wheel-detail', args=[str(wheel_id)])
 
-class OptionPurchaseUpdate(LoginRequiredMixin, generic.edit.UpdateView):
+class OptionPurchaseUpdate(PageTitleMixin, LoginRequiredMixin, generic.edit.UpdateView):
     model = OptionPurchase
     form_class = OptionPurchaseForm
 
-class OptionPurchaseDelete(LoginRequiredMixin, generic.edit.DeleteView):
+    def get_context_data(self, **kwargs):
+        context = super(OptionPurchaseUpdate, self).get_context_data(**kwargs)
+        context['option_wheel'] = self.object
+        return context
+
+    def get_page_title(self, context):
+        return f"Update Option: {self.object}"
+
+class OptionPurchaseDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.DeleteView):
     model = OptionPurchase
 
     def get_success_url(self):
         wheel_id = self.kwargs.get('wheel_id')
         return reverse('wheel-detail', args=[str(wheel_id)])
 
+    def get_page_title(self, context):
+        return f"Delete Option: {self.object}"
+
 # Total Profit Views
 @login_required
 def my_total_profit(request):
     user = request.user
     wheels = OptionWheel.objects.filter(user=user, is_active=False)
-    context = _setup_context_for_total_profit(wheels, {'profit_user': user})
+    context = _setup_context_for_total_profit(wheels, {'profit_user': user, 'page_title': 'My Profit'})
     return render(request, 'total_profit.html', context=context)
 
 
 def total_profit(request, pk):
     user = User.objects.get(pk=pk)
     wheels = OptionWheel.objects.filter(user=user, is_active=False)
-    context = _setup_context_for_total_profit(wheels, {'profit_user': user})
+    context = _setup_context_for_total_profit(wheels, {'profit_user': user, 'page_title': f"{user}'s Profit"})
     return render(request, 'total_profit.html', context=context)
 
 
@@ -452,7 +518,8 @@ def _setup_context_for_total_profit(wheels, context):
 
 
 # User views
-class UserListView(generic.ListView):
+class UserListView(PageTitleMixin, generic.ListView):
+    page_title = "User Overview"
     model = User
 
     def get_queryset(self):
