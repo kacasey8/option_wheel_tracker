@@ -37,18 +37,20 @@ class StockTicker(models.Model):
 
     @property
     def current_price(self):
-        return get_current_price(self.name)
+        return get_current_price(self.name) or 0
 
     @property
     def change_today(self):
         if self.current_price:
             return self.current_price - get_previous_close_price(self.name)
+        return 0
 
     @property
     def percent_change_today(self):
         if self.current_price:
             current_price = self.current_price
             return (current_price - get_previous_close_price(self.name)) * 1.0 / current_price
+        return 0
 
     class Meta:
         ordering = ["name"]
