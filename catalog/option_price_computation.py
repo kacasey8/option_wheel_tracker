@@ -5,6 +5,7 @@ import mibian
 import numpy
 from django.core.cache import caches
 from django.core.cache import cache
+from json import JSONDecodeError
 
 from .implied_volatility import compute_delta
 from .business_day_count import busday_count_inclusive
@@ -141,8 +142,11 @@ def _get_recent_closes(stockticker_name):
     if cached_result is not None:
         return cached_result
     start = time.time()
-    yahoo_ticker = yfinance.Ticker(stockticker_name)
-    yahoo_ticker_history = yahoo_ticker.history(period="10d")
+    try:
+        yahoo_ticker = yfinance.Ticker(stockticker_name)
+        yahoo_ticker_history = yahoo_ticker.history(period="10d")
+    except JSONDecodeError:
+        return None
     if yahoo_ticker_history.empty:
         return None
     result = yahoo_ticker_history.tail(2)['Close']
