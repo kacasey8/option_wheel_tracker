@@ -44,5 +44,5 @@ virtualenvwrapper==4.8.4
 webdriver-manager==3.2.2
 whitenoise==5.2.0
 yarg==0.1.9
-yfinance==0.1.55
+yfinance==0.1.62
 zipp==3.4.0
