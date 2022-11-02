@@ -1,27 +1,34 @@
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.conf import settings
-from django.urls import reverse
-
 from datetime import datetime
+
+from django.conf import settings
+from django.db import models
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
+
 from .business_day_count import busday_count_inclusive
 from .option_price_computation import (
     compute_annualized_rate_of_return,
     get_current_price,
-    get_previous_close_price
+    get_previous_close_price,
 )
 
-DATE_DISPLAY_FORMAT = '%b %-d'
+DATE_DISPLAY_FORMAT = "%b %-d"
 
 
 class StockTicker(models.Model):
     """Represents a publicly traded stock symbol"""
-    name = models.CharField(max_length=200, help_text='Enter a ticker, like TSLA.', unique=True, db_index=True)
+
+    name = models.CharField(
+        max_length=200,
+        help_text="Enter a ticker, like TSLA.",
+        unique=True,
+        db_index=True,
+    )
 
     class StockRecommendation(models.TextChoices):
-        NONE = 'NO', _('None')
-        STABLE = 'ST', _('Stable Choice')
-        HIGHVOLATILITY = 'HV', _('High Volatility')
+        NONE = "NO", _("None")
+        STABLE = "ST", _("Stable Choice")
+        HIGHVOLATILITY = "HV", _("High Volatility")
 
     recommendation = models.CharField(
         max_length=2,
@@ -33,7 +40,7 @@ class StockTicker(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('ticker-detail', args=[str(self.id)])
+        return reverse("ticker-detail", args=[str(self.id)])
 
     @property
     def current_price(self):
@@ -49,7 +56,11 @@ class StockTicker(models.Model):
     def percent_change_today(self):
         if self.current_price:
             current_price = self.current_price
-            return (current_price - get_previous_close_price(self.name)) * 1.0 / current_price
+            return (
+                (current_price - get_previous_close_price(self.name))
+                * 1.0
+                / current_price
+            )
         return 0
 
     class Meta:
@@ -65,13 +76,15 @@ class Account(models.Model):
         db_index=True,
     )
 
-    name = models.CharField(max_length=50, help_text='Enter an account name, like Robinhood.', db_index=True)
+    name = models.CharField(
+        max_length=50, help_text="Enter an account name, like Robinhood.", db_index=True
+    )
 
     def __str__(self):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('account-detail', args=[str(self.id)])
+        return reverse("account-detail", args=[str(self.id)])
 
     class Meta:
         ordering = ["name"]
@@ -79,16 +92,17 @@ class Account(models.Model):
 
 class OptionPurchase(models.Model):
     """Represents an option sold on a specific day"""
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_index=True,
     )
     option_wheel = models.ForeignKey(
-        'OptionWheel',
+        "OptionWheel",
         on_delete=models.CASCADE,
         db_index=True,
-        related_name='option_purchases'
+        related_name="option_purchases",
     )
     purchase_date = models.DateTimeField()
     expiration_date = models.DateField()
@@ -97,8 +111,8 @@ class OptionPurchase(models.Model):
     premium = models.DecimalField(max_digits=12, decimal_places=2)
 
     class CallOrPut(models.TextChoices):
-        CALL = 'C', _('Call')
-        PUT = 'P', _('Put')
+        CALL = "C", _("Call")
+        PUT = "P", _("Put")
 
     call_or_put = models.CharField(
         max_length=1,
@@ -107,23 +121,31 @@ class OptionPurchase(models.Model):
     )
 
     def __str__(self):
-        return f"${self.strike} {self.call_or_put} {str(self.option_wheel.stock_ticker)} (exp. {self.expiration_date.strftime(DATE_DISPLAY_FORMAT)})"
+        return f"""
+            ${self.strike} {self.call_or_put} {str(self.option_wheel.stock_ticker)}
+            (exp. {self.expiration_date.strftime(DATE_DISPLAY_FORMAT)})
+            """
 
     def get_absolute_url(self):
-        return reverse('purchase-detail-view', args=[str(self.option_wheel.pk), str(self.id)])
+        return reverse(
+            "purchase-detail-view", args=[str(self.option_wheel.pk), str(self.id)]
+        )
 
     class Meta:
-        ordering = ['-expiration_date', '-purchase_date']
+        ordering = ["-expiration_date", "-purchase_date"]
+
 
 class OptionWheel(models.Model):
-    """Referenced by multiple OptionPurchase objects to track profit from using the wheel strategy"""
+    """Referenced by multiple OptionPurchase objects to track profit from using
+    the wheel strategy"""
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_index=True,
     )
     stock_ticker = models.ForeignKey(
-        'StockTicker',
+        "StockTicker",
         on_delete=models.CASCADE,
     )
     account = models.ForeignKey(
@@ -135,9 +157,13 @@ class OptionWheel(models.Model):
     )
     quantity = models.IntegerField(default=1)
     is_active = models.BooleanField(db_index=True)
-    total_profit = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
+    total_profit = models.DecimalField(
+        max_digits=12, decimal_places=2, default=None, null=True
+    )
     total_days_active = models.IntegerField(default=None, null=True)
-    collatoral = models.DecimalField(max_digits=12, decimal_places=2, default=None, null=True)
+    collatoral = models.DecimalField(
+        max_digits=12, decimal_places=2, default=None, null=True
+    )
 
     @property
     def collateral(self):
@@ -145,14 +171,14 @@ class OptionWheel(models.Model):
         return self.collatoral
 
     def get_all_option_purchases(self):
-         return self.option_purchases.all()
-     
+        return self.option_purchases.all()
+
     def get_first_option_purchase(self):
         return self.option_purchases.all().last()
 
     def get_last_option_purchase(self):
         return self.option_purchases.all().first()
-    
+
     def get_open_date(self):
         first = self.get_first_option_purchase()
         if first:
@@ -177,7 +203,7 @@ class OptionWheel(models.Model):
     def get_cost_basis(self):
         purchases = self.get_all_option_purchases()
         if not purchases:
-            return 'N/A'
+            return "N/A"
         revenue = sum(purchase.premium for purchase in purchases)
         first_purchase = self.get_first_option_purchase()
         return first_purchase.strike - revenue
@@ -185,7 +211,7 @@ class OptionWheel(models.Model):
     def get_revenue(self):
         purchases = self.get_all_option_purchases()
         if not purchases:
-            return 'N/A'
+            return "N/A"
         return sum(purchase.premium for purchase in purchases)
 
     def add_purchase_data(self, fetch_price=True):
@@ -201,13 +227,17 @@ class OptionWheel(models.Model):
                 last_purchase.expiration_date,
             )
             decimal_rate_of_return = float(profit_if_exits_here / first_purchase.strike)
-            annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(decimal_rate_of_return, 1, days_active_so_far)
+            annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(
+                decimal_rate_of_return, 1, days_active_so_far
+            )
 
             self.cost_basis = cost_basis
             self.profit_if_exits_here = profit_if_exits_here
             self.days_active_so_far = days_active_so_far
             self.decimal_rate_of_return = decimal_rate_of_return
-            self.annualized_rate_of_return_if_exits_here = annualized_rate_of_return_if_exits_here
+            self.annualized_rate_of_return_if_exits_here = (
+                annualized_rate_of_return_if_exits_here
+            )
 
             self.open_date = self.get_open_date()
             self.open_strike = first_purchase.strike
@@ -221,13 +251,12 @@ class OptionWheel(models.Model):
                 if current_price is not None:
                     self.current_price = current_price
                     if current_price >= last_purchase.strike:
-                        self.on_track = 'Exit'
+                        self.on_track = "Exit"
                     elif current_price >= cost_basis:
-                        self.on_track = 'Hold'
+                        self.on_track = "Hold"
                     else:
-                        self.on_track = 'Under'
+                        self.on_track = "Under"
             self.purchases = purchases
-
 
     def __str__(self):
         last_purchase = self.get_last_option_purchase()
@@ -239,7 +268,10 @@ class OptionWheel(models.Model):
         call_or_put = last_purchase.call_or_put
         open_date = self.get_open_date().strftime(DATE_DISPLAY_FORMAT)
         exp_date = self.get_expiration_date().strftime(DATE_DISPLAY_FORMAT)
-        return f"{quantity_str}${strike} {call_or_put} {self.stock_ticker} (opened {open_date}, exp. {exp_date}){account_str}"
+        return f"""
+            {quantity_str}${strike} {call_or_put} {self.stock_ticker}
+            (opened {open_date}, exp. {exp_date}){account_str}
+        """
 
     def get_absolute_url(self):
-        return reverse('wheel-detail', args=[str(self.id)])
+        return reverse("wheel-detail", args=[str(self.id)])

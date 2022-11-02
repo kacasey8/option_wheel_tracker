@@ -1,80 +1,92 @@
+import datetime
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from catalog.models import Account, OptionPurchase, StockTicker, OptionWheel
+from catalog.models import Account, OptionPurchase, OptionWheel, StockTicker
 
-import datetime
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ("username", "email")
+
 
 class StockTickerForm(forms.ModelForm):
     class Meta:
         model = StockTicker
-        fields = '__all__'
+        fields = "__all__"
 
     def clean_name(self):
-        return self.cleaned_data['name'].upper()
+        return self.cleaned_data["name"].upper()
+
 
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
-        fields = ('user', 'name')
+        fields = ("user", "name")
         widgets = {
-            'user': forms.widgets.HiddenInput(),
+            "user": forms.widgets.HiddenInput(),
         }
+
 
 class OptionWheelForm(forms.ModelForm):
     class Meta:
         model = OptionWheel
-        fields = ('user', 'stock_ticker', 'account', 'quantity', 'is_active')
+        fields = ("user", "stock_ticker", "account", "quantity", "is_active")
         widgets = {
-            'user': forms.widgets.HiddenInput(),
-            'is_active': forms.widgets.HiddenInput()
+            "user": forms.widgets.HiddenInput(),
+            "is_active": forms.widgets.HiddenInput(),
         }
 
-    def __init__(self, *args, **kwargs): 
-        user = kwargs.pop('user', None) # pop the 'user' from kwargs dictionary   
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)  # pop the 'user' from kwargs dictionary
         super(OptionWheelForm, self).__init__(*args, **kwargs)
-        self.fields['account'] = forms.ModelChoiceField(
+        self.fields["account"] = forms.ModelChoiceField(
             required=False,
             queryset=Account.objects.filter(user=user),
-            label="Account (optional)"
+            label="Account (optional)",
         )
 
 
 class OptionPurchaseForm(forms.ModelForm):
     class Meta:
         model = OptionPurchase
-        fields = '__all__'
+        fields = "__all__"
         widgets = {
-            'purchase_date': forms.widgets.DateInput(attrs={'type': 'date'}),
-            'expiration_date': forms.widgets.DateInput(attrs={'type': 'date'}),
-            'strike': forms.widgets.NumberInput(attrs={'step': 0.5, 'placeholder': 'Enter Strike price'}),
-            'premium': forms.widgets.NumberInput(attrs={'placeholder': 'Enter Premium'}),
-            'price_at_date': forms.widgets.NumberInput(attrs={'placeholder': 'Enter stock price'}),
-            'user': forms.widgets.HiddenInput(),
-            'option_wheel': forms.widgets.HiddenInput()
+            "purchase_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "expiration_date": forms.widgets.DateInput(attrs={"type": "date"}),
+            "strike": forms.widgets.NumberInput(
+                attrs={"step": 0.5, "placeholder": "Enter Strike price"}
+            ),
+            "premium": forms.widgets.NumberInput(
+                attrs={"placeholder": "Enter Premium"}
+            ),
+            "price_at_date": forms.widgets.NumberInput(
+                attrs={"placeholder": "Enter stock price"}
+            ),
+            "user": forms.widgets.HiddenInput(),
+            "option_wheel": forms.widgets.HiddenInput(),
         }
 
     def clean(self):
         cleaned_data = super(OptionPurchaseForm, self).clean()
-        purchase_date = cleaned_data['purchase_date'].date()
-        expiration_date = cleaned_data['expiration_date']
+        purchase_date = cleaned_data["purchase_date"].date()
+        expiration_date = cleaned_data["expiration_date"]
 
         # The purchase date can't be in the future
         if purchase_date > datetime.date.today():
-            raise ValidationError(_('Invalid date - purchase in future'))
+            raise ValidationError(_("Invalid date - purchase in future"))
 
         # The purchase date must be before the expiration date
         if purchase_date > expiration_date:
-            raise ValidationError(_('Invalid dates - purchase date cannot be after expiration'))
+            raise ValidationError(
+                _("Invalid dates - purchase date cannot be after expiration")
+            )
 
         return cleaned_data

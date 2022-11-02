@@ -1,9 +1,5 @@
 *.log
-*.pot
 *.pyc
-**__pycache__
-local_settings.py
-venv/
-.postgres_command
 .vscode/
 *.DS_Store
+.env

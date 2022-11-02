@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "option_wheel_tracker"
+version = "0.1.0"
+description = "Option Wheel Tracker"
+authors = ["Ryan Casey <rcaseyatbat@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+Django = "^4.1.2"
+django-debug-toolbar = "^3.7.0"
+dj-database-url = "^1.0.0"
+django-bmemcached = "^0.3.0"
+gunicorn = "^20.1.0"
+mibian = "^0.1.3"
+numpy = "^1.23.4"
+pandas = "^1.5.1"
+psycopg2-binary = "^2.9.5"
+rq = "^1.11.1"
+scipy = "^1.9.3"
+whitenoise = "^6.2.0"
+yfinance = "^0.1.84"
+
+[tool.poetry.dev-dependencies]
+black = "^22.10.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

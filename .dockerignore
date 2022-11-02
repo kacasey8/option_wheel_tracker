@@ -1,0 +1,6 @@
+# flyctl launch added from .gitignore
+*.log
+*.pyc
+.vscode/
+*.DS_Store
+.env
