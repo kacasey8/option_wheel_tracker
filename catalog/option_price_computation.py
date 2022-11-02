@@ -111,6 +111,7 @@ def get_earnings(stockticker_name):
     cache_key = "get_earnings_" + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
+        print(f"cache hit get_earnings: {stockticker_name}")
         return cached_result
     start = time.time()
     result = False
@@ -165,6 +166,7 @@ def _get_recent_closes(stockticker_name):
     cache_key = "get_recent_closes_" + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
+        print(f"cache hit for recent closes {stockticker_name}")
         return cached_result
     start = time.time()
     try:
@@ -176,8 +178,8 @@ def _get_recent_closes(stockticker_name):
         return None
     result = yahoo_ticker_history.tail(2)["Close"]
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
-    ending = time.time() - start
-    print("_get_recent_closes", stockticker_name, ending)
+    elapsed_time = time.time() - start
+    print(f"ran _get_recent_closes for {stockticker_name}: {elapsed_time}")
     return result
 
 

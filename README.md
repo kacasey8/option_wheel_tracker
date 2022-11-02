@@ -22,6 +22,10 @@ Use `pip install -r requirements.dev` to download dependencies. Then `python man
 1. Install `flyctl` https://fly.io/docs/flyctl/installing/
 2. Run `fly deploy`
 
+# Production server
+ssh to the prod server:
+`fly ssh console -a optionwheel`
+
 
 # Database
 

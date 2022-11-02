@@ -48,6 +48,13 @@ else:
     # dev secret key
     SECRET_KEY = "zyfwk)7^_=22%ll^ojv6h803%k!v@6=m0rone7=@h@5=&seiba"
 
+# local file system cache
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": "/tmp/django_cache",
+    }
+}
 
 # Application definition
 

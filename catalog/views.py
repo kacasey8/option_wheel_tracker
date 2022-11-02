@@ -108,7 +108,7 @@ def global_put_comparison(request):
         return render(request, "global_put_comparison.html", context=context)
     try:
         schedule_global_put_comparison_async()
-    except:
+    except Exception:
         context["permanently_unavailable"] = True
     context["unavailable"] = True
     return render(request, "global_put_comparison.html", context=context)
