@@ -18,6 +18,7 @@ DATE_DISPLAY_FORMAT = "%b %-d"
 class StockTicker(models.Model):
     """Represents a publicly traded stock symbol"""
 
+    id: int
     name = models.CharField(
         max_length=200,
         help_text="Enter a ticker, like TSLA.",
@@ -70,12 +71,12 @@ class StockTicker(models.Model):
 class Account(models.Model):
     """Represents an account that can trade stocks options"""
 
+    id: int
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_index=True,
     )
-
     name = models.CharField(
         max_length=50, help_text="Enter an account name, like Robinhood.", db_index=True
     )
@@ -93,6 +94,7 @@ class Account(models.Model):
 class OptionPurchase(models.Model):
     """Represents an option sold on a specific day"""
 
+    id: int
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -139,6 +141,7 @@ class OptionWheel(models.Model):
     """Referenced by multiple OptionPurchase objects to track profit from using
     the wheel strategy"""
 
+    id: int
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
