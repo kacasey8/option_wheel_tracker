@@ -19,6 +19,7 @@ rq = "^1.11.1"
 scipy = "^1.9.3"
 whitenoise = "^6.2.0"
 yfinance = "^0.1.84"
+python-dotenv = "^0.21.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.10.0"

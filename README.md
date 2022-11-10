@@ -46,8 +46,8 @@ https://fly.io/docs/postgres/getting-started/migrate-from-heroku/#provision-and-
 ## Run locally against production DB
 1. Proxy to local port 5432 in a seperate tab
 `flyctl proxy 5432 -a optionwheeldb`
-2. While proxy, set the following env var and adjust settings to read from it
-`export DATABASE_URL="postgres://postgres:<password>@localhost:5432/optionwheel"`
+2. While proxy, set the following in your .env file at the root of the project
+`DATABASE_URL="postgres://postgres:<password>@localhost:5432/optionwheel"`
 
 # Logs
 Run:

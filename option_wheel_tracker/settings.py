@@ -14,16 +14,12 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app_stage = os.environ.get("DJANGO_APP_STAGE", "dev")
-
-"""
-if app_stage == "prod":
-    from .settings_production import *
-else:
-    from .settings_development import *
-"""
-print("APP STAGE: ", app_stage)
+print("starting option wheel tracker: ", app_stage)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,13 +35,14 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-if app_stage == "prod":
-    # configure from DATABASE_URL env var
-    db_from_env = dj_database_url.config(conn_max_age=600)
-    DATABASES["default"].update(db_from_env)
-else:
+
+# configure from DATABASE_URL env var, if it exists
+db_from_env = dj_database_url.config(conn_max_age=600)
+DATABASES["default"].update(db_from_env)
+
+if app_stage == "dev":
     DEBUG = True
-    # dev secret key
+    # note this is the dev secret key
     SECRET_KEY = "zyfwk)7^_=22%ll^ojv6h803%k!v@6=m0rone7=@h@5=&seiba"
 
 # local file system cache
