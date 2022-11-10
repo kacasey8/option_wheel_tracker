@@ -218,10 +218,10 @@ def my_active_wheels(request):
     # .select_related('user') \
     # .select_related('stock_ticker') \
     # .prefetch_related('option_purchases') \
-    wheels = OptionWheel.objects.filter(user=user, is_active=True)
-    # wheels = OptionWheel.objects.filter(user=user, is_active=True).prefetch_related(
-    #    "option_purchases"
-    # )
+    # wheels = OptionWheel.objects.filter(user=user, is_active=True)
+    wheels = OptionWheel.objects.filter(user=user, is_active=True).prefetch_related(
+        "option_purchases"
+    )
     start = time.time()
     for wheel in wheels:
         wheel.add_purchase_data()
