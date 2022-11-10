@@ -214,13 +214,10 @@ class AccountDetailView(PageTitleMixin, LoginRequiredMixin, generic.DetailView):
 @login_required
 def my_active_wheels(request):
     user = request.user
-    # .select_related('account') \
-    # .select_related('user') \
-    # .select_related('stock_ticker') \
-    # .prefetch_related('option_purchases') \
-    # wheels = OptionWheel.objects.filter(user=user, is_active=True)
-    wheels = OptionWheel.objects.filter(user=user, is_active=True).prefetch_related(
-        "option_purchases"
+    wheels = (
+        OptionWheel.objects.filter(user=user, is_active=True)
+        .prefetch_related("option_purchases")
+        .select_related("stock_ticker")
     )
     start = time.time()
     for wheel in wheels:
