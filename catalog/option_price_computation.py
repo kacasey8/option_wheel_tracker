@@ -288,17 +288,15 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         # This likely indicates a broken option (bid/ask is busted),
         # and mibian will take a long time computing these
         return None
-    strike, last_price, bid, ask = [
+    strike, last_price, bid = [
         interesting_put.strike,
         interesting_put.lastPrice,
         interesting_put.bid,
-        interesting_put.ask,
     ]
+    # Default to the last price (note that bid is 0 during off hours)
     effective_price = last_price
-    if (bid == 0 and ask == 0) == False:
-        # bid and ask will be 0 during off hours, so use last_price as an estimate.
-        # During trading hours we assume we'll assuming worse case that we can only get
-        # it for bid price
+    if bid > 0:
+        # During trading hours, assume worst case that we can only get the bid price
         effective_price = bid
     if effective_price == 0 or numpy.isnan(effective_price):
         return None
@@ -370,17 +368,15 @@ def compute_call_stat(
         # This likely indicates a broken option (bid/ask is busted),
         # and mibian will take a long time computing these
         return None
-    strike, last_price, bid, ask = [
+    strike, last_price, bid = [
         interesting_call.strike,
         interesting_call.lastPrice,
         interesting_call.bid,
-        interesting_call.ask,
     ]
+    # Default to the last price (note that bid is 0 during off hours)
     effective_price = last_price
-    if (bid == 0 and ask == 0) == False:
-        # bid and ask will be 0 during off hours, so use last_price as an estimate.
-        # During trading hours we assume we'll assuming worse case that we can only get
-        # it for bid price
+    if bid > 0:
+        # During trading hours, assume worst case that we can only get the bid price
         effective_price = bid
     if effective_price == 0 or numpy.isnan(effective_price):
         return None
