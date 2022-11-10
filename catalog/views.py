@@ -1,4 +1,5 @@
 import json
+import time
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -218,9 +219,14 @@ def my_active_wheels(request):
     # .select_related('stock_ticker') \
     # .prefetch_related('option_purchases') \
     wheels = OptionWheel.objects.filter(user=user, is_active=True)
+    # wheels = OptionWheel.objects.filter(user=user, is_active=True).prefetch_related(
+    #    "option_purchases"
+    # )
+    start = time.time()
     for wheel in wheels:
-        print("adding purchase data", wheel)
         wheel.add_purchase_data()
+    end = time.time()
+    print("my active wheels, elapsed time=", end - start)
     context = {"wheel_user": user}
     context["wheels"] = wheels
     context["can_edit"] = True
