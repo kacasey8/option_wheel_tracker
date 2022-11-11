@@ -83,7 +83,7 @@ class PageTitleMixin(object):
         return getattr(self, "page_title", "Option Wheel")
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)  # type: ignore
         context["page_title"] = self.get_page_title(context)
         return context
 
@@ -132,20 +132,24 @@ class StockTickerDetailView(PageTitleMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(StockTickerDetailView, self).get_context_data(**kwargs)
-        num_wheels = OptionWheel.objects.filter(stock_ticker=self.object.id).count()
-        _inject_earnings(context, self.object.name)
-        result = get_put_stats_for_ticker(self.object)
-        context["put_stats"] = sorted(
-            result["put_stats"],
-            key=lambda put: put["annualized_rate_of_return_decimal"],
-            reverse=True,
-        )
-        context["current_price"] = result["current_price"]
-        context["num_wheels"] = num_wheels
+        object = self.get_object()
+        if isinstance(object, StockTicker):
+            num_wheels = OptionWheel.objects.filter(stock_ticker=object.id).count()
+            _inject_earnings(context, object.name)
+            result = get_put_stats_for_ticker(object)
+            context["put_stats"] = sorted(
+                result["put_stats"],
+                key=lambda put: put["annualized_rate_of_return_decimal"],
+                reverse=True,
+            )
+            context["current_price"] = result["current_price"]
+            context["num_wheels"] = num_wheels
         return context
 
     def get_page_title(self, context):
-        return self.object.name
+        object = self.get_object()
+        if isinstance(object, StockTicker):
+            return object.name
 
 
 class StockTickerCreate(PageTitleMixin, generic.edit.CreateView):
@@ -161,7 +165,9 @@ class StockTickerUpdate(PageTitleMixin, generic.edit.UpdateView):
     success_url = reverse_lazy("tickers")
 
     def get_page_title(self, context):
-        return f"Update {self.object.name} Ticker"
+        object = self.get_object()
+        if isinstance(object, StockTicker):
+            return f"Update {object.name} Ticker"
 
 
 class StockTickerDelete(PageTitleMixin, generic.edit.DeleteView):
@@ -169,7 +175,9 @@ class StockTickerDelete(PageTitleMixin, generic.edit.DeleteView):
     success_url = reverse_lazy("tickers")
 
     def get_page_title(self, context):
-        return f"Delete {self.object.name} Ticker"
+        object = self.get_object()
+        if isinstance(object, StockTicker):
+            return f"Delete {object.name} Ticker"
 
 
 # Account views
@@ -198,7 +206,9 @@ class AccountUpdate(PageTitleMixin, LoginRequiredMixin, generic.edit.UpdateView)
     success_url = reverse_lazy("my-accounts")
 
     def get_page_title(self, context):
-        return f"Update {self.object.name} Account"
+        object = self.get_object()
+        if isinstance(object, Account):
+            return f"Update {object.name} Account"
 
 
 class AccountDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.DeleteView):
@@ -206,14 +216,18 @@ class AccountDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.DeleteView)
     success_url = reverse_lazy("my-accounts")
 
     def get_page_title(self, context):
-        return f"Delete {self.object.name} Account"
+        object = self.get_object()
+        if isinstance(object, Account):
+            return f"Delete {object.name} Account"
 
 
 class AccountDetailView(PageTitleMixin, LoginRequiredMixin, generic.DetailView):
     model = Account
 
     def get_page_title(self, context):
-        return f"{self.object.name} Account"
+        object = self.get_object()
+        if isinstance(object, Account):
+            return f"{object.name} Account"
 
 
 # OptionWheel views
@@ -310,14 +324,15 @@ class OptionWheelDetailView(PageTitleMixin, generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(OptionWheelDetailView, self).get_context_data(**kwargs)
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get("pk"))
-
         option_wheel.add_purchase_data()
         context["wheel_data"] = option_wheel
         context["can_edit"] = option_wheel.user == self.request.user
         return context
 
     def get_page_title(self, context):
-        return self.object
+        object = self.get_object()
+        if isinstance(object, OptionWheel):
+            return object
 
 
 @login_required
@@ -375,7 +390,7 @@ class OptionWheelCreate(PageTitleMixin, generic.edit.CreateView):
         return kwargs
 
     def get_success_url(self):
-        return reverse("purchase-create", args=[str(self.object.id)])
+        return reverse("purchase-create", args=[str(self.object.id)])  # type: ignore
 
 
 class OptionWheelUpdate(PageTitleMixin, generic.edit.UpdateView):
@@ -388,10 +403,14 @@ class OptionWheelUpdate(PageTitleMixin, generic.edit.UpdateView):
         return kwargs
 
     def get_success_url(self):
-        return reverse("wheel-detail", args=[str(self.object.id)])
+        object = self.get_object()
+        if isinstance(object, OptionWheel):
+            return reverse("wheel-detail", args=[str(object.id)])
 
     def get_page_title(self, context):
-        return f"Update {self.object}"
+        object = self.get_object()
+        if isinstance(object, OptionWheel):
+            return f"Update {object}"
 
 
 class OptionWheelDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.DeleteView):
@@ -399,7 +418,9 @@ class OptionWheelDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.DeleteV
     success_url = reverse_lazy("my-active-wheels")
 
     def get_page_title(self, context):
-        return f"Delete {self.object}"
+        object = self.get_object()
+        if isinstance(object, OptionWheel):
+            return f"Delete {object}"
 
 
 # OptionPurchase views
@@ -408,11 +429,15 @@ class OptionPurchaseDetailView(PageTitleMixin, LoginRequiredMixin, generic.Detai
 
     def get_context_data(self, **kwargs):
         context = super(OptionPurchaseDetailView, self).get_context_data(**kwargs)
-        context["can_edit"] = self.object.user == self.request.user
+        object = self.get_object()
+        if isinstance(object, OptionPurchase):
+            context["can_edit"] = object.user == self.request.user
         return context
 
     def get_page_title(self, context):
-        return f"Option: {self.object}"
+        object = self.get_object()
+        if isinstance(object, OptionPurchase):
+            return f"Option: {object}"
 
 
 class OptionPurchaseCreate(PageTitleMixin, LoginRequiredMixin, generic.edit.CreateView):
@@ -479,11 +504,15 @@ class OptionPurchaseUpdate(PageTitleMixin, LoginRequiredMixin, generic.edit.Upda
 
     def get_context_data(self, **kwargs):
         context = super(OptionPurchaseUpdate, self).get_context_data(**kwargs)
-        context["option_wheel"] = self.object
+        object = self.get_object()
+        if isinstance(object, OptionPurchase):
+            context["option_wheel"] = object
         return context
 
     def get_page_title(self, context):
-        return f"Update Option: {self.object}"
+        object = self.get_object()
+        if isinstance(object, OptionPurchase):
+            return f"Update Option: {object}"
 
 
 class OptionPurchaseDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.DeleteView):
@@ -494,7 +523,9 @@ class OptionPurchaseDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.Dele
         return reverse("wheel-detail", args=[str(wheel_id)])
 
     def get_page_title(self, context):
-        return f"Delete Option: {self.object}"
+        object = self.get_object()
+        if isinstance(object, OptionPurchase):
+            return f"Delete Option: {object}"
 
 
 # Total Profit Views
