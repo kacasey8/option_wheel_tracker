@@ -2,6 +2,7 @@ import json
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import Any
 
 import pandas
 from django.conf import settings
@@ -11,6 +12,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db.models import Count, F, Q, Sum, fields
 from django.db.models.functions import Cast, Coalesce, Power, Round
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
@@ -212,85 +214,69 @@ class AccountDetailView(PageTitleMixin, LoginRequiredMixin, generic.DetailView):
 
 # OptionWheel views
 @login_required
-def my_active_wheels(request):
+def my_active_wheels(request: HttpRequest) -> HttpResponse:
     user = request.user
-    wheels = (
-        OptionWheel.objects.filter(user=user, is_active=True)
-        .prefetch_related("option_purchases")
-        .select_related("stock_ticker")
-    )
-    start = time.time()
-    for wheel in wheels:
-        wheel.add_purchase_data()
-    end = time.time()
-    print("my active wheels, elapsed time=", end - start)
-    context = {"wheel_user": user}
-    context["wheels"] = wheels
+    context = _setup_context_for_wheels(active=True, user=user)
     context["can_edit"] = True
     context["page_title"] = "My Active Wheels"
     return render(request, "active_wheels.html", context=context)
 
 
-def active_wheels(request, pk):
+def active_wheels(request: HttpRequest, pk: int) -> HttpResponse:
     user = User.objects.get(pk=pk)
-    wheels = OptionWheel.objects.filter(user=user, is_active=True)
-    for wheel in wheels:
-        wheel.add_purchase_data()
-    context = {"wheel_user": user}
-    context["wheels"] = wheels
+    context = _setup_context_for_wheels(active=True, user=user)
     context["can_edit"] = request.user == user
     context["page_title"] = f"{user}'s Active Wheels"
     return render(request, "active_wheels.html", context=context)
 
 
 @login_required
-def my_completed_wheels(request):
+def my_completed_wheels(request: HttpRequest) -> HttpResponse:
     user = request.user
-    wheels = OptionWheel.objects.filter(user=user, is_active=False)
-    for wheel in wheels:
-        wheel.add_purchase_data(fetch_price=False)
-    context = {"wheel_user": user}
-    context["wheels"] = wheels
+    context = _setup_context_for_wheels(active=False, user=user)
     context["page_title"] = "My Completed Wheels"
     return render(request, "completed_wheels.html", context=context)
 
 
-def completed_wheels(request, pk):
+def completed_wheels(request: HttpRequest, pk: int) -> HttpResponse:
     user = User.objects.get(pk=pk)
-    wheels = OptionWheel.objects.filter(user=user, is_active=False)
-    for wheel in wheels:
-        wheel.add_purchase_data(fetch_price=False)
-    context = {"wheel_user": user}
-    context["wheels"] = wheels
+    context = _setup_context_for_wheels(active=False, user=user)
     context["page_title"] = f"{user}'s Completed Wheels"
     return render(request, "completed_wheels.html", context=context)
 
 
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
-def all_active_wheels(request):
-    context = {}
-    wheels = OptionWheel.objects.filter(is_active=True)
-    for wheel in wheels:
-        wheel.add_purchase_data()
-    context["wheels"] = wheels
+def all_active_wheels(request: HttpRequest) -> HttpResponse:
+    context = _setup_context_for_wheels(active=True)
     context["page_title"] = "All Active Wheels"
     return render(request, "all_active_wheels.html", context=context)
 
 
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
 def all_completed_wheels(request):
-    context = {}
-    wheels = (
-        OptionWheel.objects.select_related("account")
-        .select_related("user")
-        .select_related("stock_ticker")
-        .filter(is_active=False)
-    )
-    for wheel in wheels:
-        wheel.add_purchase_data(fetch_price=False)
-    context["wheels"] = wheels
+    context = _setup_context_for_wheels(active=False)
     context["page_title"] = "All Completed Wheels"
     return render(request, "all_completed_wheels.html", context=context)
+
+
+def _setup_context_for_wheels(active: bool, user=None) -> dict[str, Any]:
+    start = time.time()
+    context = {}
+    wheels = (
+        OptionWheel.objects.filter(is_active=active)
+        .prefetch_related("option_purchases")
+        .select_related("stock_ticker")
+    )
+    if user:
+        wheels = wheels.filter(user=user)
+        context["wheel_user"] = user
+    for wheel in wheels:
+        # only fetch price for wheels that are active
+        wheel.add_purchase_data(fetch_price=active)
+    context["wheels"] = wheels
+    end = time.time()
+    print(f"wheel context: active:{active}, user:{user}, time: {end-start}")
+    return context
 
 
 @cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
