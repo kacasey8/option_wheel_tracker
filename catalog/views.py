@@ -2,7 +2,7 @@ import json
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Optional
 
 import pandas
 from django.conf import settings
@@ -39,6 +39,10 @@ from .option_price_computation import (
 from .schedule_async import GLOBAL_PUT_CACHE_KEY, schedule_global_put_comparison_async
 
 ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 60
+
+
+class AuthedHttpRequest(HttpRequest):
+    user: User  # type: ignore [assignment]
 
 
 def _get_today():
@@ -214,7 +218,7 @@ class AccountDetailView(PageTitleMixin, LoginRequiredMixin, generic.DetailView):
 
 # OptionWheel views
 @login_required
-def my_active_wheels(request: HttpRequest) -> HttpResponse:
+def my_active_wheels(request: AuthedHttpRequest) -> HttpResponse:
     user = request.user
     context = _setup_context_for_wheels(active=True, user=user)
     context["can_edit"] = True
@@ -231,7 +235,7 @@ def active_wheels(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @login_required
-def my_completed_wheels(request: HttpRequest) -> HttpResponse:
+def my_completed_wheels(request: AuthedHttpRequest) -> HttpResponse:
     user = request.user
     context = _setup_context_for_wheels(active=False, user=user)
     context["page_title"] = "My Completed Wheels"
@@ -259,7 +263,9 @@ def all_completed_wheels(request):
     return render(request, "all_completed_wheels.html", context=context)
 
 
-def _setup_context_for_wheels(active: bool, user=None) -> dict[str, Any]:
+def _setup_context_for_wheels(
+    active: bool, user: Optional[User] = None
+) -> dict[str, Any]:
     start = time.time()
     context = {}
     wheels = (
