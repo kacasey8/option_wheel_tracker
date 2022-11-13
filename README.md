@@ -26,6 +26,9 @@ Use `pip install -r requirements.dev` to download dependencies. Then `python man
 ssh to the prod server:
 `fly ssh console -a optionwheel`
 
+Or to get a bash shell, just run:
+`bash prod_server`
+
 
 # Database
 
