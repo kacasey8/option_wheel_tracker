@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime
 from json import JSONDecodeError
@@ -10,6 +11,8 @@ from django.core.cache import cache
 
 from .business_day_count import busday_count_inclusive
 from .implied_volatility import compute_delta
+
+logger = logging.getLogger(__name__)
 
 # interest rate: https://ycharts.com/indicators/10_year_treasury_rate#:~:text=10%20Year%20Treasury%20Rate%20is%20at%200.94%25%2C%20compared%20to%200.94,long%20term%20average%20of%204.39%25. # noqa
 INTEREST_RATE = 1
@@ -56,7 +59,7 @@ def _get_option_chain(stockticker_name, option_day, is_call):
         result = option_chain.puts
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
     ending = time.time() - start
-    print(stockticker_name, option_day, ending)
+    logging.info(f"fetched option chain {stockticker_name}: {option_day} took {ending}")
     return result
 
 
@@ -111,11 +114,11 @@ def get_earnings(stockticker_name):
     cache_key = "get_earnings_" + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
-        print(f"cache hit get_earnings: {stockticker_name}")
         return cached_result
     start = time.time()
     result = False
     earnings_date = None
+    logger.info(f"starting earnings: {stockticker_name}")
     try:
         yahoo_ticker = yfinance.Ticker(stockticker_name)
         calendar = yahoo_ticker.calendar
@@ -135,12 +138,12 @@ def get_earnings(stockticker_name):
                 result = earnings_date.date()
     except Exception as e:
         # Handle yahoo finance download failure.
-        print(f"failed to get {e}")
+        logger.error(f"failed to get {e}")
         result = None
 
     cache.set(cache_key, result, YAHOO_FINANCE_LONG_CACHE_TIMEOUT)
     elapsed = time.time() - start
-    print(f"elapsed time getting earnings date: {elapsed}")
+    logger.info(f"fetched earnings: {stockticker_name} {elapsed}")
     return result
 
 
@@ -166,7 +169,7 @@ def _get_recent_closes(stockticker_name):
     cache_key = "get_recent_closes_" + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
-        print(f"cache hit for recent closes {stockticker_name}")
+        print(f"cache hit for recent closes: {stockticker_name}")
         return cached_result
     start = time.time()
     try:
@@ -178,8 +181,8 @@ def _get_recent_closes(stockticker_name):
         return None
     result = yahoo_ticker_history.tail(2)["Close"]
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
-    elapsed_time = time.time() - start
-    print(f"ran _get_recent_closes for {stockticker_name}: {elapsed_time}")
+    elapsed = time.time() - start
+    logger.info(f"fetched recent closes: {stockticker_name} {elapsed}")
     return result
 
 

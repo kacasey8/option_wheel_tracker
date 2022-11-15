@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -39,6 +40,9 @@ from .option_price_computation import (
 from .schedule_async import GLOBAL_PUT_CACHE_KEY, schedule_global_put_comparison_async
 
 ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 60
+
+
+logger = logging.getLogger(__name__)
 
 
 class AuthedHttpRequest(HttpRequest):
@@ -295,7 +299,7 @@ def _setup_context_for_wheels(
         wheel.add_purchase_data(fetch_price=active)
     context["wheels"] = wheels
     end = time.time()
-    print(f"wheel context: active:{active}, user:{user}, time: {end-start}")
+    logger.info(f"wheel context: active:{active}, user:{user}, time: {end-start}")
     return context
 
 

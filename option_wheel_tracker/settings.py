@@ -16,16 +16,22 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
+from option_wheel_tracker.logging import configure_logging
+
 load_dotenv()
 
-app_stage = os.environ.get("DJANGO_APP_STAGE", "dev")
-print("starting option wheel tracker: ", app_stage)
+APP_STAGE = os.environ.get("DJANGO_APP_STAGE", "dev")
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
+LOG_PATH = os.environ.get("LOG_PATH")
+print(f"initializing option wheel tracker: {APP_STAGE}")
+print(f"Log Level: {LOG_LEVEL}, Log path: {LOG_PATH}")
+LOGGING = configure_logging(LOG_LEVEL, LOG_PATH)
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = os.environ.get("DEBUG", False)
-
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # Start with local sqlite db
@@ -40,7 +46,7 @@ DATABASES = {
 db_from_env = dj_database_url.config(conn_max_age=600)
 DATABASES["default"].update(db_from_env)
 
-if app_stage == "dev":
+if APP_STAGE == "dev":
     DEBUG = True
     # note this is the dev secret key
     SECRET_KEY = "zyfwk)7^_=22%ll^ojv6h803%k!v@6=m0rone7=@h@5=&seiba"

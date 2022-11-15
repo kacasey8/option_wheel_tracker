@@ -11,6 +11,7 @@ processes = []
 [env]
   PORT = "8000"
   DJANGO_APP_STAGE = "prod"
+  LOG_PATH="/home/option_wheel_tracker/logs"
 
 [experimental]
   allowed_public_ports = []
