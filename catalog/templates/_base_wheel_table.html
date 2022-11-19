@@ -2,7 +2,7 @@
 {% load filter_tags %}
 
 <div>
-  <table 
+  <table
     class="display compact wheel_table" {% if not active %} data-order='[[ 0, "desc" ]]'{% endif %}>
     <thead>
       <tr>
@@ -52,7 +52,7 @@
             ${{ row.last_purchase.strike }} {{ row.last_purchase.call_or_put | call_or_put }}
           </td>
           <td>
-            <a href="{{ row.stock_ticker.get_absolute_url }}">{{ row.stock_ticker }}</a> 
+            <a href="{{ row.stock_ticker.get_absolute_url }}">{{ row.stock_ticker }}</a>
             {% if row.quantity > 1 %}
               <strong>({{ row.quantity}})</strong>
             {% endif %}
@@ -74,8 +74,8 @@
           <td>
             ${{ row.cost_basis }}
           </td>
-          <td data-order={{ row.open_date | date:"c" }}>
-            {{ row.open_date | date:"M j"}}
+          <td data-order={{ row.opening_date | date:"c" }}>
+            {{ row.opening_date | date:"M j"}}
           </td>
           <td>
             ${{ row.open_strike }}

@@ -1,6 +1,7 @@
 import logging
 import time
 from datetime import datetime
+from decimal import Decimal
 from json import JSONDecodeError
 
 import mibian
@@ -63,7 +64,7 @@ def _get_option_chain(stockticker_name, option_day, is_call):
     return result
 
 
-def _get_odds_otm(current_price, strike, days_to_expiry, put_price):
+def _get_odds_otm(current_price, strike, days_to_expiry, put_price) -> Decimal:
     cache_key = (
         "_get_odds_otm"
         + str(current_price)
@@ -86,7 +87,11 @@ def _get_odds_otm(current_price, strike, days_to_expiry, put_price):
         [current_price, strike, INTEREST_RATE, days_to_expiry],
         volatility=implied_volatility,
     )
-    result = 1 + put_with_implied_volatility.putDelta
+    put_delta = put_with_implied_volatility.putDelta
+    if isinstance(put_delta, float):
+        result = Decimal(put_delta + 1)
+    else:
+        raise Exception("invalid put delta", put_delta)
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
     return result
 
@@ -94,20 +99,21 @@ def _get_odds_otm(current_price, strike, days_to_expiry, put_price):
 # We assume that when we fail (for a put we acquire stock, or call we keep stock)
 # we get a rate of return of 1x, which is profit_decimal_fail_case as 0
 def compute_annualized_rate_of_return(
-    profit_decimal, odds, days, profit_decimal_fail_case=0
-):
+    profit_decimal: Decimal,
+    odds: Decimal,
+    days: float,
+    profit_decimal_fail_case: Decimal = Decimal(0),
+) -> Decimal:
     if days < 5:
         # typically you can't do options faster than once a week, so assume the minimum
         #  timeframe is 5 days. This could be unnecessarily punishing toward short time
         # frame, but is perhaps more realistic
         days = 5
 
-    rate_of_return_success_case = 1 + profit_decimal
-    rate_of_return_fail_case = 1 + profit_decimal_fail_case
-    effective_rate_of_return = (
-        rate_of_return_success_case * odds + rate_of_return_fail_case * (1 - odds)
-    )
-    return effective_rate_of_return ** (BUSINESS_DAYS_IN_YEAR / days)
+    rate_of_return_success = (1 + profit_decimal) * odds
+    rate_of_return_fail = (1 + profit_decimal_fail_case) * (1 - odds)
+    effective_rate_of_return = rate_of_return_success + rate_of_return_fail
+    return effective_rate_of_return ** Decimal((BUSINESS_DAYS_IN_YEAR / days))
 
 
 def get_earnings(stockticker_name):
@@ -333,9 +339,9 @@ def compute_put_stat(current_price, interesting_put, days_to_expiry, expiration_
         probability_out_of_the_money = _get_odds_otm(
             current_price, strike, days_to_expiry, effective_price
         )
-    if numpy.isnan(probability_out_of_the_money):
+    if not probability_out_of_the_money:
         return None
-    max_profit_decimal = effective_price / strike
+    max_profit_decimal = Decimal(effective_price / strike)
     # https://www.macroption.com/delta-calls-puts-probability-expiring-itm/
     # "Option’s delta as probability proxy"
     stats = {
@@ -418,8 +424,14 @@ def compute_call_stat(
 
     # For computing the return of just this call, we ignore any previous profit/losses
     # and assume we had to buy the stock at the current price
-    call_max_profit_decimal = (strike + effective_price - current_price) / current_price
-    odds = call_with_implied_volatility.callDelta
+    call_max_profit_decimal = Decimal(
+        (strike + effective_price - current_price) / current_price
+    )
+    call_delta = call_with_implied_volatility.callDelta
+    if isinstance(call_delta, float):
+        odds = Decimal(call_delta)
+    else:
+        raise Exception("invalid call delta", call_delta)
 
     annualized_rate_of_return = compute_annualized_rate_of_return(
         call_max_profit_decimal, odds, days_to_expiry

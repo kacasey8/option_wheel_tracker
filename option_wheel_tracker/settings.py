@@ -158,9 +158,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 LOGIN_REDIRECT_URL = "/"
 
-MARKET_OPEN_HOUR = 6
-MARKET_CLOSE_HOUR = 13
-
 ALLOWED_HOSTS = ["127.0.0.1", "optionwheel.fly.dev"]
 CSRF_TRUSTED_ORIGINS = ["https://optionwheel.fly.dev"]
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

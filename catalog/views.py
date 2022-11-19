@@ -3,10 +3,10 @@ import logging
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
+from decimal import Decimal
 from typing import Any, Optional
 
 import pandas
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -29,6 +29,7 @@ from catalog.forms import (
 from catalog.models import Account, OptionPurchase, OptionWheel, StockTicker
 
 from .business_day_count import busday_count_inclusive
+from .constants import MARKET_OPEN_HOUR, PAGE_CACHE
 from .option_price_computation import (
     BUSINESS_DAYS_IN_YEAR,
     compute_annualized_rate_of_return,
@@ -38,9 +39,6 @@ from .option_price_computation import (
     get_put_stats_for_ticker,
 )
 from .schedule_async import GLOBAL_PUT_CACHE_KEY, schedule_global_put_comparison_async
-
-ALL_VIEWS_PAGE_CACHE_IN_SECONDS = 60
-
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +59,7 @@ def _get_next_friday():
 def _get_last_trading_day():
     now = datetime.now()
     today = _get_today()
-    if now.hour < settings.MARKET_OPEN_HOUR:
+    if now.hour < MARKET_OPEN_HOUR:
         today -= timedelta(days=1)
     while today.weekday() > 4:
         today -= timedelta(days=1)
@@ -267,14 +265,14 @@ def completed_wheels(request: HttpRequest, pk: int) -> HttpResponse:
     return render(request, "completed_wheels.html", context=context)
 
 
-@cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
+@cache_page(PAGE_CACHE)
 def all_active_wheels(request: HttpRequest) -> HttpResponse:
     context = _setup_context_for_wheels(active=True)
     context["page_title"] = "All Active Wheels"
     return render(request, "all_active_wheels.html", context=context)
 
 
-@cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
+@cache_page(PAGE_CACHE)
 def all_completed_wheels(request):
     context = _setup_context_for_wheels(active=False)
     context["page_title"] = "All Completed Wheels"
@@ -303,16 +301,15 @@ def _setup_context_for_wheels(
     return context
 
 
-@cache_page(ALL_VIEWS_PAGE_CACHE_IN_SECONDS)
+@cache_page(PAGE_CACHE)
 def todays_active_wheels(request):
     date = _get_last_trading_day()
     context = {}
     wheels = OptionWheel.objects.filter(is_active=True)
     todays_wheels = []
     for wheel in wheels:
-        last_purchase = wheel.get_last_option_purchase()
-        if last_purchase:
-            if date == last_purchase.purchase_date.date():
+        if wheel.last_purchase:
+            if date == wheel.last_purchase.purchase_date.date():
                 wheel.add_purchase_data()
                 todays_wheels.append(wheel)
     context["wheels"] = todays_wheels
@@ -342,22 +339,22 @@ class OptionWheelDetailView(PageTitleMixin, generic.DetailView):
 @login_required
 def complete_wheel(request, pk):
     option_wheel = OptionWheel.objects.get(pk=pk)
-    purchases = option_wheel.get_all_option_purchases()
+    purchases = option_wheel.option_purchase_list
+    opening_purchase = option_wheel.opening_purchase
+    last_purchase = option_wheel.last_purchase
 
     option_wheel.is_active = False
-    if purchases:
-        last_purchase = option_wheel.get_last_option_purchase()
-        first_purchase = option_wheel.get_first_option_purchase()
+    if purchases and opening_purchase and last_purchase:
 
         premiums = sum(purchase.premium for purchase in purchases)
-        profit = premiums + last_purchase.strike - first_purchase.strike
+        profit = premiums + last_purchase.strike - opening_purchase.strike
 
         bus_days = busday_count_inclusive(
-            first_purchase.purchase_date.date(),
+            opening_purchase.purchase_date.date(),
             last_purchase.expiration_date,
         )
         puts = [p for p in purchases if p.call_or_put == "P"]
-        max_collateral = max(p.strike for p in puts)
+        max_collateral = max(p.strike for p in puts) if puts else Decimal(0)
 
         option_wheel.total_profit = profit
         option_wheel.total_days_active = bus_days
@@ -460,10 +457,9 @@ class OptionPurchaseCreate(PageTitleMixin, LoginRequiredMixin, generic.edit.Crea
 
         first_strike = None
         call_or_put = "P"
-        first_option_purchase = option_wheel.get_first_option_purchase()
-        if first_option_purchase:
+        if option_wheel.opening_purchase:
             call_or_put = "C"
-            first_strike = first_option_purchase.strike
+            first_strike = option_wheel.opening_purchase.strike
         now = datetime.now()
         return {
             "user": user,
@@ -481,18 +477,18 @@ class OptionPurchaseCreate(PageTitleMixin, LoginRequiredMixin, generic.edit.Crea
         context["option_wheel"] = option_wheel
         context["cost_basis"] = option_wheel.get_cost_basis()
         _inject_earnings(context, option_wheel.stock_ticker.name)
-        first_purchase = option_wheel.get_first_option_purchase()
-        if first_purchase is not None:
-            last_purchase = option_wheel.get_last_option_purchase()
+        opening_purchase = option_wheel.opening_purchase
+        last_purchase = option_wheel.last_purchase
+        if opening_purchase and last_purchase:
             days_active_so_far = busday_count_inclusive(
-                first_purchase.purchase_date.date(),
+                opening_purchase.purchase_date.date(),
                 last_purchase.expiration_date,
             )
             call_stats = get_call_stats_for_option_wheel(
                 option_wheel.stock_ticker,
                 days_active_so_far,
                 option_wheel.get_revenue(),
-                collateral=first_purchase.strike,
+                collateral=opening_purchase.strike,
             )
             context["call_stats"] = call_stats["call_stats"]
         return context
@@ -568,12 +564,10 @@ def _setup_context_for_total_profit(wheels, context):
         wheel_count += wheel.quantity
         sum_days_weighted_by_collateral += wheel.total_days_active * wheel_collateral
         no_quantity_wheel_count += 1
-        profit_per_day[wheel.get_expiration_date().strftime("%Y-%m-%d")] += float(
+        profit_per_day[wheel.expiration_date.strftime("%Y-%m-%d")] += float(
             wheel_profit
         )
-        for day in pandas.bdate_range(
-            wheel.get_open_date(), wheel.get_expiration_date()
-        ):
+        for day in pandas.bdate_range(wheel.opening_date, wheel.expiration_date):
             collateral_on_the_line_per_day[day.strftime("%Y-%m-%d")] += float(
                 wheel_collateral
             )
@@ -587,7 +581,7 @@ def _setup_context_for_total_profit(wheels, context):
         sum_days_weighted_by_collateral / total_collateral
     )
     context["total_days_active_average"] = total_days_active_average
-    return_percentage = (float)(total_profit / total_collateral)
+    return_percentage = Decimal(total_profit / total_collateral)
     context["return_percentage"] = return_percentage
     context["total_wheel_count"] = wheel_count
     context["no_quantity_wheel_count"] = no_quantity_wheel_count
@@ -597,7 +591,7 @@ def _setup_context_for_total_profit(wheels, context):
     context["profit_per_day"] = json.dumps(list(profit_per_day.items()))
     context["max_collateral"] = max(collateral_on_the_line_per_day.values() or [0])
     context["annualized_rate_of_return_decimal"] = compute_annualized_rate_of_return(
-        return_percentage, 1, total_days_active_average
+        return_percentage, Decimal(1), total_days_active_average
     )
     return context
 

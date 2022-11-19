@@ -1,4 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Optional
 
 from django.conf import settings
 from django.db import models
@@ -6,13 +8,12 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from .business_day_count import busday_count_inclusive
+from .constants import DATE_DISPLAY_FORMAT, MARKET_CLOSE_HOUR
 from .option_price_computation import (
     compute_annualized_rate_of_return,
     get_current_price,
     get_previous_close_price,
 )
-
-DATE_DISPLAY_FORMAT = "%b %-d"
 
 
 class StockTicker(models.Model):
@@ -168,70 +169,87 @@ class OptionWheel(models.Model):
         max_digits=12, decimal_places=2, default=None, null=True
     )
 
+    _option_purchase_list: list[OptionPurchase] = []
+
     @property
     def collateral(self):
         # ugh, misspelled in the database
         return self.collatoral
 
-    def get_all_option_purchases(self):
-        return self.option_purchases.all()
+    @property
+    def option_purchase_list(self) -> list[OptionPurchase]:
+        if not self._option_purchase_list:
+            """Fetch all related option purchase objects, if we haven't done the query
+            yet. Note that they will be in descending order by expiration date, with
+            the most recent purchases first."""
+            self._option_purchase_list = self.option_purchases.all()  # type: ignore
+        return self._option_purchase_list
 
-    def get_first_option_purchase(self):
-        return self.option_purchases.all().last()
+    @property
+    def opening_purchase(self) -> Optional[OptionPurchase]:
+        """The opening purchase is actually the last one in the purchase list."""
+        if self.option_purchase_list:
+            return self.option_purchase_list[len(self.option_purchase_list) - 1]
+        return None
 
-    def get_last_option_purchase(self):
-        return self.option_purchases.all().first()
+    @property
+    def last_purchase(self) -> Optional[OptionPurchase]:
+        """The last recent purchase is the first one in the purchase list."""
+        if self.option_purchase_list:
+            return self.option_purchase_list[0]
+        return None
 
-    def get_open_date(self):
-        first = self.get_first_option_purchase()
-        if first:
-            return first.purchase_date.date()
+    @property
+    def opening_date(self) -> date:
+        if self.opening_purchase:
+            return self.opening_purchase.purchase_date.date()
         return datetime.min.date()
 
-    def get_expiration_date(self):
-        last_purchase = self.get_last_option_purchase()
-        if last_purchase:
-            return last_purchase.expiration_date
+    @property
+    def expiration_date(self) -> date:
+        if self.last_purchase:
+            return self.last_purchase.expiration_date
         return datetime.max.date()
 
-    def is_expired(self):
+    @property
+    def expired(self) -> bool:
         if not self.is_active:
             return False
         now = datetime.now()
         today = now.date()
-        if now.hour >= settings.MARKET_CLOSE_HOUR:
-            return self.get_expiration_date() <= today
-        return self.get_expiration_date() < today
+        if now.hour >= MARKET_CLOSE_HOUR:
+            return self.expiration_date <= today
+        return self.expiration_date < today
 
-    def get_cost_basis(self):
-        purchases = self.get_all_option_purchases()
+    def get_cost_basis(self) -> Optional[Decimal]:
+        revenue = self.get_revenue()
+        if not revenue or not self.opening_purchase:
+            return None
+        return self.opening_purchase.strike - revenue
+
+    def get_revenue(self) -> Optional[Decimal]:
+        purchases = self.option_purchase_list
         if not purchases:
-            return "N/A"
-        revenue = sum(purchase.premium for purchase in purchases)
-        first_purchase = self.get_first_option_purchase()
-        return first_purchase.strike - revenue
+            return None
+        return Decimal(sum(purchase.premium for purchase in purchases))
 
-    def get_revenue(self):
-        purchases = self.get_all_option_purchases()
-        if not purchases:
-            return "N/A"
-        return sum(purchase.premium for purchase in purchases)
-
-    def add_purchase_data(self, fetch_price=True):
-        purchases = self.get_all_option_purchases()
+    def add_purchase_data(self, fetch_price=True) -> None:
+        purchases = self.option_purchase_list
         if purchases:
             cost_basis = self.get_cost_basis()
-            first_purchase = self.get_first_option_purchase()
-            last_purchase = self.get_last_option_purchase()
+            opening_purchase = self.opening_purchase
+            last_purchase = self.last_purchase
+            if not cost_basis or not opening_purchase or not last_purchase:
+                return
             profit_if_exits_here = last_purchase.strike - cost_basis
 
             days_active_so_far = busday_count_inclusive(
-                first_purchase.purchase_date.date(),
+                opening_purchase.purchase_date.date(),
                 last_purchase.expiration_date,
             )
-            decimal_rate_of_return = float(profit_if_exits_here / first_purchase.strike)
+            decimal_rate_of_return = profit_if_exits_here / opening_purchase.strike
             annualized_rate_of_return_if_exits_here = compute_annualized_rate_of_return(
-                decimal_rate_of_return, 1, days_active_so_far
+                decimal_rate_of_return, Decimal(1), days_active_so_far
             )
 
             self.cost_basis = cost_basis
@@ -242,13 +260,7 @@ class OptionWheel(models.Model):
                 annualized_rate_of_return_if_exits_here
             )
 
-            self.open_date = self.get_open_date()
-            self.open_strike = first_purchase.strike
-
-            self.expiration_date = self.get_expiration_date()
-            self.last_purchase = last_purchase
-
-            self.expired = self.is_expired()
+            self.open_strike = opening_purchase.strike
             if fetch_price:
                 current_price = get_current_price(self.stock_ticker.name)
                 if current_price is not None:
@@ -262,18 +274,17 @@ class OptionWheel(models.Model):
             self.purchases = purchases
 
     def __str__(self):
-        last_purchase = self.get_last_option_purchase()
         quantity_str = f"({self.quantity}) " if self.quantity > 1 else ""
         account_str = f" [{self.account}]" if self.account else ""
-        if not last_purchase:
+        if not self.last_purchase:
             return f"{quantity_str}{self.stock_ticker}{account_str}"
-        strike = last_purchase.strike
-        call_or_put = last_purchase.call_or_put
-        open_date = self.get_open_date().strftime(DATE_DISPLAY_FORMAT)
-        exp_date = self.get_expiration_date().strftime(DATE_DISPLAY_FORMAT)
+        strike = self.last_purchase.strike
+        call_or_put = self.last_purchase.call_or_put
+        opening_date = self.opening_date.strftime(DATE_DISPLAY_FORMAT)
+        exp_date = self.expiration_date.strftime(DATE_DISPLAY_FORMAT)
         return f"""
             {quantity_str}${strike} {call_or_put} {self.stock_ticker}
-            (opened {open_date}, exp. {exp_date}){account_str}
+            (opened {opening_date}, exp. {exp_date}){account_str}
         """
 
     def get_absolute_url(self):
