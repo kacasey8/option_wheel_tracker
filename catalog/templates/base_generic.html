@@ -15,7 +15,7 @@
   <script type="text/javascript">
     {% if collateral_on_the_line_per_day is not None %}
       const collateral_on_the_line_per_day = {{ collateral_on_the_line_per_day | safe }};
-      const profit_per_day = {{ profit_per_day | safe }}; 
+      const profit_per_day = {{ profit_per_day | safe }};
     {% endif %}
   </script>
   <script src="{% static 'js/option_detail_table.js' %}"></script>
@@ -25,6 +25,10 @@
   <script src="{% static 'js/profit_collateral_chart.js' %}"></script>
 </head>
 <body>
+  <div class="alert alert-danger m-1" role="alert">
+    <h5>Warning: Database was migrated to new Fly site on Saturday 11/19 at 2:10pm PST.</h5>
+    <p>Any updates made after that time will be lost when this site closes on 11/28.</p>
+  </div>
   <div class="container-fluid">
     <div class="row">
       <div class="col-sm-2">
