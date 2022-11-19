@@ -6,6 +6,7 @@
 {% block content %}
   <h1>Stock Ticker: {{ stockticker.name }}</h1>
   <p><a type="button" class="btn btn-primary" href="{% url 'tickers' %}">All Tickers</a></p>
+  <p><a type="button" class="btn btn-primary" href="{% url 'wheel-create' %}">Start New Wheel</a></p>
 
   {% if earnings %}
     <div class="alert alert-{{earnings_variant}}">
