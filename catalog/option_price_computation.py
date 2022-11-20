@@ -175,7 +175,7 @@ def _get_recent_closes(stockticker_name):
     cache_key = "get_recent_closes_" + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
-        print(f"cache hit for recent closes: {stockticker_name}")
+        logger.info(f"cache hit for recent closes: {stockticker_name}")
         return cached_result
     start = time.time()
     try:

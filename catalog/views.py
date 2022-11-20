@@ -66,7 +66,8 @@ def _get_last_trading_day():
     return today
 
 
-def _inject_earnings(context, stockticker_name):
+def _inject_earnings_into_context(context: dict, stockticker_name: str):
+    """Adds earnings data for stockticker_name into the context dict"""
     earnings = get_earnings(stockticker_name)
     if earnings:
         variant = "warning"
@@ -137,7 +138,7 @@ class StockTickerDetailView(PageTitleMixin, generic.DetailView):
         object = self.get_object()
         if isinstance(object, StockTicker):
             num_wheels = OptionWheel.objects.filter(stock_ticker=object.id).count()
-            _inject_earnings(context, object.name)
+            _inject_earnings_into_context(context, object.name)
             result = get_put_stats_for_ticker(object)
             context["put_stats"] = sorted(
                 result["put_stats"],
@@ -475,8 +476,7 @@ class OptionPurchaseCreate(PageTitleMixin, LoginRequiredMixin, generic.edit.Crea
         context = super(OptionPurchaseCreate, self).get_context_data(**kwargs)
         option_wheel = OptionWheel.objects.get(pk=self.kwargs.get("wheel_id"))
         context["option_wheel"] = option_wheel
-        context["cost_basis"] = option_wheel.get_cost_basis()
-        _inject_earnings(context, option_wheel.stock_ticker.name)
+        _inject_earnings_into_context(context, option_wheel.stock_ticker.name)
         opening_purchase = option_wheel.opening_purchase
         last_purchase = option_wheel.last_purchase
         if opening_purchase and last_purchase:
@@ -487,7 +487,7 @@ class OptionPurchaseCreate(PageTitleMixin, LoginRequiredMixin, generic.edit.Crea
             call_stats = get_call_stats_for_option_wheel(
                 option_wheel.stock_ticker,
                 days_active_so_far,
-                option_wheel.get_revenue(),
+                option_wheel.revenue,
                 collateral=opening_purchase.strike,
             )
             context["call_stats"] = call_stats["call_stats"]

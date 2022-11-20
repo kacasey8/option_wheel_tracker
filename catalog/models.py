@@ -221,13 +221,15 @@ class OptionWheel(models.Model):
             return self.expiration_date <= today
         return self.expiration_date < today
 
-    def get_cost_basis(self) -> Optional[Decimal]:
-        revenue = self.get_revenue()
+    @property
+    def cost_basis(self) -> Optional[Decimal]:
+        revenue = self.revenue
         if not revenue or not self.opening_purchase:
             return None
         return self.opening_purchase.strike - revenue
 
-    def get_revenue(self) -> Optional[Decimal]:
+    @property
+    def revenue(self) -> Optional[Decimal]:
         purchases = self.option_purchase_list
         if not purchases:
             return None
@@ -236,12 +238,11 @@ class OptionWheel(models.Model):
     def add_purchase_data(self, fetch_price=True) -> None:
         purchases = self.option_purchase_list
         if purchases:
-            cost_basis = self.get_cost_basis()
             opening_purchase = self.opening_purchase
             last_purchase = self.last_purchase
-            if not cost_basis or not opening_purchase or not last_purchase:
+            if not self.cost_basis or not opening_purchase or not last_purchase:
                 return
-            profit_if_exits_here = last_purchase.strike - cost_basis
+            profit_if_exits_here = last_purchase.strike - self.cost_basis
 
             days_active_so_far = busday_count_inclusive(
                 opening_purchase.purchase_date.date(),
@@ -252,7 +253,6 @@ class OptionWheel(models.Model):
                 decimal_rate_of_return, Decimal(1), days_active_so_far
             )
 
-            self.cost_basis = cost_basis
             self.profit_if_exits_here = profit_if_exits_here
             self.days_active_so_far = days_active_so_far
             self.decimal_rate_of_return = decimal_rate_of_return
@@ -267,7 +267,7 @@ class OptionWheel(models.Model):
                     self.current_price = current_price
                     if current_price >= last_purchase.strike:
                         self.on_track = "Exit"
-                    elif current_price >= cost_basis:
+                    elif current_price >= self.cost_basis:
                         self.on_track = "Hold"
                     else:
                         self.on_track = "Under"
