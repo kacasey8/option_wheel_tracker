@@ -10,7 +10,6 @@ import pandas
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.core.cache import cache
 from django.db.models import Count, F, Q, Sum, fields
 from django.db.models.functions import Cast, Coalesce, Power, Round
 from django.http import HttpRequest, HttpResponse
@@ -29,7 +28,7 @@ from catalog.forms import (
 from catalog.models import Account, OptionPurchase, OptionWheel, StockTicker
 
 from .business_day_count import busday_count_inclusive
-from .constants import MARKET_OPEN_HOUR, PAGE_CACHE
+from .constants import GLOBAL_TICKERS, MARKET_OPEN_HOUR, PAGE_CACHE
 from .option_price_computation import (
     BUSINESS_DAYS_IN_YEAR,
     compute_annualized_rate_of_return,
@@ -38,7 +37,7 @@ from .option_price_computation import (
     get_earnings,
     get_put_stats_for_ticker,
 )
-from .schedule_async import GLOBAL_PUT_CACHE_KEY, schedule_global_put_comparison_async
+from .schedule_async import get_global_puts
 
 logger = logging.getLogger(__name__)
 
@@ -112,15 +111,9 @@ def signup_complete(request):
 
 def global_put_comparison(request):
     context = {}
-    cached_result = cache.get(GLOBAL_PUT_CACHE_KEY)
-    if cached_result is not None:
-        context["put_stats"] = cached_result
-        return render(request, "global_put_comparison.html", context=context)
-    try:
-        schedule_global_put_comparison_async()
-    except Exception:
-        context["permanently_unavailable"] = True
-    context["unavailable"] = True
+    result = get_global_puts()
+    context["put_stats"] = result
+    context["global_tickers"] = ", ".join(GLOBAL_TICKERS)
     return render(request, "global_put_comparison.html", context=context)
 
 

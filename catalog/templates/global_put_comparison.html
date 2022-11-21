@@ -2,8 +2,10 @@
 
 {% block content %}
   <h1>Global Put Options</h1>
-  <div>Shows the put options on every stock in the database</div>
-  <a href="{% url 'tickers' %}">Back to stock list</a>
+  <div>
+    Shows the put options on selected stocks: <strong>{{ global_tickers }} </strong>
+  </div>
+  <a href="{% url 'tickers' %}">View All Stock Tickers</a>
   {% if permanently_unavailable is not None %}
     <div>This feature doesn't isn't supported right now, since it requires worker.py to be running.</div>
   {% elif unavailable is not None %}

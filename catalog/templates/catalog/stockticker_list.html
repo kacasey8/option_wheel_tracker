@@ -9,10 +9,10 @@
 
   {% if stockticker_list %}
     <div>
-      <a href="{% url 'global-put-comparison' %}">All Stock Put Options Combined</a> (will take time to load)
+      <a href="{% url 'global-put-comparison' %}">Global Put Comparison</a>
     </div>
     {% include '_ticker_table.html' %}
   {% else %}
     <p>There are no stock tickers</p>
-  {% endif %} 
+  {% endif %}
 {% endblock %}

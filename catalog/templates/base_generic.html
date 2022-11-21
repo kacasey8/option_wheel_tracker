@@ -42,6 +42,7 @@
           <li><a href="{% url 'all-active-wheels' %}">All Active Wheels</a></li>
           <li><a href="{% url 'all-completed-wheels' %}">All Completed Wheels</a></li>
           <li><a href="{% url 'todays-active-wheels' %}">Todays Active Wheels</a></li>
+          <li><a href="{% url 'global-put-comparison' %}">Global Put Comparison</a></li>
           <li><a href="{% url 'users' %}">User Overview</a></li>
           {% if user.is_authenticated %}
             <li>User: {{ user.get_username }}</li>
