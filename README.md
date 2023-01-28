@@ -9,7 +9,7 @@ Use `pip install -r requirements.dev` to download dependencies. Then `python man
 
 # Local Development
 
-## Create environment and install depdendencies
+## Create environment and install dependencies
 `poetry install`
 
 ## Update dependencies:
@@ -27,7 +27,10 @@ ssh to the prod server:
 `fly ssh console -a optionwheel`
 
 Or to get a bash shell, just run:
-`bash prod_server`
+`bash prod_server.sh`
+
+Logs are located at:
+/home/option_wheel_tracker/logs
 
 
 # Database
