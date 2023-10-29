@@ -18,7 +18,7 @@ psycopg2-binary = "^2.9.5"
 rq = "^1.11.1"
 scipy = "^1.9.3"
 whitenoise = "^6.2.0"
-yfinance = "^0.1.84"
+yfinance = "^0.2.31"
 python-dotenv = "^0.21.0"
 
 [tool.poetry.dev-dependencies]
