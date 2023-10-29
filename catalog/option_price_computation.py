@@ -88,9 +88,9 @@ def _get_odds_otm(current_price, strike, days_to_expiry, put_price) -> Decimal:
         volatility=implied_volatility,
     )
     put_delta = put_with_implied_volatility.putDelta
-    if isinstance(put_delta, float):
-        result = Decimal(put_delta + 1)
-    else:
+    try:
+        result = Decimal(float(put_delta) + 1)
+    except:
         raise Exception("invalid put delta", put_delta)
     cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
     return result
