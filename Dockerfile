@@ -17,8 +17,6 @@ RUN python -m pip install --user --upgrade poetry \
     && poetry config virtualenvs.in-project true \
     && poetry install --only main --no-interaction --no-ansi --no-root
 
-RUN poetry install --no-interaction --no-ansi --only-root
-
 COPY manage.py manage.py
 COPY worker.py worker.py
 COPY catalog catalog
