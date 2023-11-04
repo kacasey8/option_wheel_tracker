@@ -35,7 +35,7 @@ the days to expiry</p>
     {% for call_stat in call_stats %}
       <tr>
         <td>
-          <a href="{{ call_stat.ticker.get_absolute_url }}">{{ call_stat.ticker }}</a> 
+          <a href="{{ call_stat.ticker.get_absolute_url }}">{{ call_stat.ticker }}</a>
         </td>
         <td>
           {{ call_stat.strike }}
@@ -46,7 +46,7 @@ the days to expiry</p>
         <td data-order={{ call_stat.days_to_expiry }}>
           {{ call_stat.days_to_expiry }} ({{call_stat.expiration_date}})
           {% if call_stat.includes_earnings %}
-            <span class="badge badge-pill badge-danger">Earnings</span>
+            <span class="badge badge-pill badge-danger">E</span>
           {% endif %}
         </td>
         <td>

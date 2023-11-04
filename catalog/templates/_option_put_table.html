@@ -21,7 +21,7 @@
     {% for put_stat in put_stats %}
       <tr>
         <td>
-          <a href="{{ put_stat.ticker.get_absolute_url }}">{{ put_stat.ticker }}</a> 
+          <a href="{{ put_stat.ticker.get_absolute_url }}">{{ put_stat.ticker }}</a>
         </td>
         <td>
           {{ put_stat.strike }}
@@ -35,7 +35,7 @@
         <td data-order={{ put_stat.days_to_expiry }}>
           {{ put_stat.days_to_expiry }} ({{put_stat.expiration_date}})
           {% if put_stat.includes_earnings %}
-            <span class="badge badge-pill badge-danger">Earnings</span>
+            <span class="badge badge-pill badge-danger">E</span>
           {% endif %}
         </td>
         <td>

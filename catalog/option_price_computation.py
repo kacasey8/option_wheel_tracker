@@ -123,25 +123,15 @@ def get_earnings(stockticker_name):
         return cached_result
     start = time.time()
     result = False
-    earnings_date = None
     logger.info(f"starting earnings: {stockticker_name}")
     try:
         yahoo_ticker = yfinance.Ticker(stockticker_name)
-        calendar = yahoo_ticker.calendar
-        if (
-            calendar is not None
-            and type(calendar) is pd.DataFrame
-            and not calendar.empty
-        ):
-            if "Value" in calendar:
-                data_series = calendar["Value"]
-            else:
-                data_series = calendar[0]
-
-            earnings_date = pd.to_datetime(data_series["Earnings Date"])
-            # Only care about future earnings dates.
-            if earnings_date and earnings_date.date() > datetime.now().date():
-                result = earnings_date.date()
+        future_earnings_dates = [
+            d.date()
+            for d in yahoo_ticker.earnings_dates.index
+            if d.date() >= datetime.now().date()
+        ]
+        result = sorted(future_earnings_dates)[0]
     except Exception as e:
         # Handle yahoo finance download failure.
         logger.error(f"failed to get {e}")
