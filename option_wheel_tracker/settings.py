@@ -14,11 +14,8 @@ import os
 from pathlib import Path
 
 import dj_database_url
-from dotenv import load_dotenv
 
 from option_wheel_tracker.logging import configure_logging
-
-load_dotenv()
 
 APP_STAGE = os.environ.get("DJANGO_APP_STAGE", "dev")
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
