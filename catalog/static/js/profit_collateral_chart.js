@@ -66,16 +66,45 @@ $(document).ready(function () {
     }
   });
 
-  $('#show_negative_profits').change( function() {
+  updateChartData();
+
+  function updateChartData () {
     const showNegativeProfits = $('#show_negative_profits').is(":checked");
-    const profit_data = profit_per_day.sort().map((elem => {
+    const showAllYears = $('#show_all_years').is(":checked");
+    let profitData = profit_per_day.sort();
+    let collateralData = collateral_on_the_line_per_day.sort();
+    if (!showAllYears) {
+      // filter to the max year in the data
+      const years = profitData.map(x => (new Date(x[0])).getFullYear());
+      const maxYear = Math.max(...years);
+      profitData = profitData.filter(x => (new Date(x[0])).getFullYear() === maxYear);
+      collateralData = collateralData.filter(x => (new Date(x[0])).getFullYear() === maxYear);
+    }
+
+    const collateral_data = collateralData.sort().map((x => {
       return {
-        t: new Date(elem[0]),
-        y: showNegativeProfits ? elem[1]: Math.max(0, elem[1])
+        t: new Date(x[0]),
+        y: x[1]
+      }
+    }));
+    myChart.data.datasets[0].data = collateral_data;
+
+    const profit_data = profitData.map((x => {
+      return {
+        t: new Date(x[0]),
+        y: showNegativeProfits ? x[1]: Math.max(0, x[1])
       }
     }));
     myChart.data.datasets[1].data = profit_data;
     myChart.update();
+  }
+
+  $('#show_negative_profits').change( function() {
+    updateChartData();
+  });
+
+  $('#show_all_years').change( function() {
+    updateChartData();
   });
 
 });
