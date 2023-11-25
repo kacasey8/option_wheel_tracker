@@ -282,6 +282,8 @@ def _setup_context_for_wheels(
         OptionWheel.objects.filter(is_active=active)
         .prefetch_related("option_purchases")
         .select_related("stock_ticker")
+        .select_related("account")
+        .select_related("user")
     )
     if user:
         wheels = wheels.filter(user=user)
@@ -295,11 +297,16 @@ def _setup_context_for_wheels(
     return context
 
 
-@cache_page(PAGE_CACHE)
 def todays_active_wheels(request):
     date = _get_last_trading_day()
     context = {}
-    wheels = OptionWheel.objects.filter(is_active=True)
+    wheels = (
+        OptionWheel.objects.filter(is_active=True)
+        .prefetch_related("option_purchases")
+        .select_related("stock_ticker")
+        .select_related("account")
+        .select_related("user")
+    )
     todays_wheels = []
     for wheel in wheels:
         if wheel.last_purchase:
