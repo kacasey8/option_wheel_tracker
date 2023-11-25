@@ -539,7 +539,6 @@ def _setup_context_for_total_profit(user):
     wheels = (
         OptionWheel.objects.filter(user=user, is_active=False)
         .prefetch_related("option_purchases")
-        .select_related("stock_ticker")
         .select_related("account")
     )
     total_profit = 0
