@@ -19,7 +19,7 @@ INTEREST_RATE = 1
 BUSINESS_DAYS_IN_YEAR = 252
 # Some stats on yahoo finance are only based on a few stray trades, remove those
 # because these are false
-MINIMUM_VOLUME = 20
+MINIMUM_VOLUME = 10
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.01
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.99
 IMPOSSIBLE_IMPLIED_VOLATILITY = 4.4
