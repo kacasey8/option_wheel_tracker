@@ -24,8 +24,8 @@ IMPOSSIBLE_BIDS_BUFFER_PERCENT_CALL = 1.01
 IMPOSSIBLE_BIDS_BUFFER_PERCENT_PUT = 0.99
 IMPOSSIBLE_IMPLIED_VOLATILITY = 4.4
 
-YAHOO_FINANCE_CACHE_TIMEOUT = 5 * 60
-YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 24
+YAHOO_FINANCE_CACHE_TIMEOUT = 5 * 60  # 5 minutes
+YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 24 * 7  # 1 week
 
 
 def _get_option_days(stockticker_name, maximum_option_days):
@@ -119,18 +119,24 @@ def get_earnings(stockticker_name):
     cache_key = "get_earnings_" + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
+        if cached_result == "no earnings":
+            return None
         return cached_result
     start = time.time()
     result = False
     logger.info(f"starting earnings: {stockticker_name}")
     try:
         yahoo_ticker = yfinance.Ticker(stockticker_name)
-        future_earnings_dates = [
-            d.date()
-            for d in yahoo_ticker.earnings_dates.index
-            if d.date() >= datetime.now().date()
-        ]
-        result = sorted(future_earnings_dates)[0]
+        if yahoo_ticker.earnings_dates is None:
+            # handle tickers with no earnings
+            result = "no earnings"
+        else:
+            future_earnings_dates = [
+                d.date()
+                for d in yahoo_ticker.earnings_dates.index
+                if d.date() >= datetime.now().date()
+            ]
+            result = sorted(future_earnings_dates)[0]
     except Exception as e:
         # Handle yahoo finance download failure.
         logger.error(f"failed to get {e}")
@@ -139,6 +145,8 @@ def get_earnings(stockticker_name):
     cache.set(cache_key, result, YAHOO_FINANCE_LONG_CACHE_TIMEOUT)
     elapsed = time.time() - start
     logger.info(f"fetched earnings: {stockticker_name} {elapsed}")
+    if result == "no earnings":
+        return None
     return result
 
 
