@@ -8,16 +8,60 @@
   {% else %}
     <h1>Total Profit for {{ profit_user }}</h1>
   {% endif %}
-  <p><strong>Total Profit:</strong> {{ total_profit | intcomma }}</p>
-  <p><strong>Total Collateral:</strong> {{ total_collateral | intcomma }}</p>
-  <p><strong>Max Collateral At Any Point:</strong> {{ max_collateral | intcomma }}</p>
-  <p><strong>Average Days:</strong> {{ total_days_active_average | floatformat:2 }}</p>
-  <p><strong>Annualized Rate of Return:</strong> {{ annualized_rate_of_return_decimal | floatformat:2 }}x</p>
-  <p><strong>Return Percentage:</strong> {{ return_percentage | percentage }}</p>
-  <p><strong>Total Profit Dollars:</strong> ${{ total_profit_dollars | intcomma }}</p>
-  <p><strong>Total Collateral Dollars:</strong> ${{ total_collateral_dollars | intcomma }}</p>
-  <p><strong>Total Wheels Finished:</strong> {{ no_quantity_wheel_count | intcomma }}</p>
-  <p><strong>Total Wheels Finished Including Quantity:</strong> {{ total_wheel_count | intcomma }}</p>
+  <div>Note that profits are for <strong>completed</strong> wheels only</div>
+  <br>
+  <h5>Total Profit</h5>
+  <table class="display compact profit_table">
+    <thead>
+      <tr>
+        <th>Total Profit ($)</th>
+        <th>Total Collateral ($)</th>
+        <th>Max Collateral ($)</th>
+        <th>Return Percentage</th>
+        <th>Average Days</th>
+        <th>Annualized Rate of Return</th>
+        <th># Wheels Completed</th>
+        <th># Wheels Completed (w/ Quantity)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>${{ total_profit_dollars | intcomma }}</td>
+        <td>${{ total_collateral_dollars | intcomma }}</td>
+        <td>${{ max_collateral | floatformat:2 | intcomma }}</td>
+        <td>{{ return_percentage | percentage }}</td>
+        <td>{{ total_days_active_average | floatformat:2 }}</td>
+        <td>{{ annualized_rate_of_return_decimal | floatformat:2 }}x</td>
+        <td>{{ no_quantity_wheel_count | intcomma }}</td>
+        <td>{{ total_wheel_count | intcomma }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <h5>Yearly Profits by Accounts</h5>
+  <table class="display compact profit_table">
+    <thead>
+      <tr>
+        <th>Year</th>
+        {% for account in accounts %}
+          <th>{{ account }}</th>
+        {% endfor %}
+        <th class="border-left">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for year, profits in yearly_account_profits.items %}
+        <tr>
+          <td>{{ year }} </td>
+          {% for account in accounts %}
+            <td>${{ profits | keyvalue:account | intcomma}}</td>
+          {% endfor %}
+          <td class="border-left">${{ profits | keyvalue:"Total" | intcomma}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
   <div>
     <label for="show_negative_profits">Show Negative Profits</label>
     <input type="checkbox" id="show_negative_profits" name="show_negative_profits">

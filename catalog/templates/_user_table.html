@@ -3,50 +3,50 @@
 {% load humanize %}
 
 <table class="display compact user_table">
-    <thead>
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Total Profit ($)</th>
+      <th>Total Collateral ($)</th>
+      <th>Return Percentage</th>
+      <th>Average Days</th>
+      <th>Annualized Rate of Return</th>
+      <th># Active Wheels</th>
+      <th># Completed Wheels</th>
+      <th>Total Wheels Completed (w/ Quantity)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in user_list %}
       <tr>
-        <th>Username</th>
-        <th>Total Profit ($)</th>
-        <th>Total Collateral ($)</th>
-        <th>Return Percentage</th>
-        <th>Average Days</th>
-        <th>Annualized Rate of Return</th>
-        <th># Active Wheels</th>
-        <th># Completed Wheels</th>
-        <th>Total Wheels Completed (w/ Quantity)</th>
+        <td>
+          {{ user.username }}
+        </td>
+        <td>
+          <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.profit | intcomma }}</a>
+        </td>
+        <td>
+          <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.collateral | intcomma }}</a>
+        </td>
+        <td>
+          {{ user.return_percentage | percentage }}
+        </td>
+        <td>
+          {{ user.average_days | floatformat:2 }}
+        </td>
+        <td data-order={{ user.annualized_rate_of_return }}>
+          {{ user.annualized_rate_of_return | floatformat:2 }}x
+        </td>
+        <td>
+          <a href="{% url 'user-active-wheels' pk=user.id %}">{{ user.active }}</a>
+        </td>
+        <td>
+          <a href="{% url 'user-completed-wheels' pk=user.id %}">{{ user.completed }}</a>
+        </td>
+        <td>
+          {{ user.total_wheels }}
+        </td>
       </tr>
-    </thead>
-    <tbody>
-      {% for user in user_list %}
-        <tr>
-          <td>
-            {{ user.username }}
-          </td>
-          <td>
-            <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.profit | intcomma }}</a>
-          </td>
-          <td>
-            <a href="{% url 'user-total-profit' pk=user.id %}">${{ user.collateral | intcomma }}</a>
-          </td>
-          <td>
-            {{ user.return_percentage | percentage }}
-          </td>
-          <td>
-            {{ user.average_days | floatformat:2 }}
-          </td>
-          <td data-order={{ user.annualized_rate_of_return }}>
-            {{ user.annualized_rate_of_return | floatformat:2 }}x
-          </td>
-          <td>
-            <a href="{% url 'user-active-wheels' pk=user.id %}">{{ user.active }}</a>
-          </td>
-          <td>
-            <a href="{% url 'user-completed-wheels' pk=user.id %}">{{ user.completed }}</a>
-          </td>
-          <td>
-            {{ user.total_wheels }}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    {% endfor %}
+  </tbody>
+</table>

@@ -339,7 +339,6 @@ def complete_wheel(request, pk):
 
     option_wheel.is_active = False
     if purchases and opening_purchase and last_purchase:
-
         premiums = sum(purchase.premium for purchase in purchases)
         profit = premiums + last_purchase.strike - opening_purchase.strike
 
@@ -525,23 +524,24 @@ class OptionPurchaseDelete(PageTitleMixin, LoginRequiredMixin, generic.edit.Dele
 @login_required
 def my_total_profit(request):
     user = request.user
-    wheels = OptionWheel.objects.filter(user=user, is_active=False)
-    context = _setup_context_for_total_profit(
-        wheels, {"profit_user": user, "page_title": "My Profit"}
-    )
+    context = _setup_context_for_total_profit(user)
     return render(request, "total_profit.html", context=context)
 
 
 def total_profit(request, pk):
     user = User.objects.get(pk=pk)
-    wheels = OptionWheel.objects.filter(user=user, is_active=False)
-    context = _setup_context_for_total_profit(
-        wheels, {"profit_user": user, "page_title": f"{user}'s Profit"}
-    )
+    context = _setup_context_for_total_profit(user)
     return render(request, "total_profit.html", context=context)
 
 
-def _setup_context_for_total_profit(wheels, context):
+def _setup_context_for_total_profit(user):
+    context = {"profit_user": user, "page_title": f"{user}'s Profit"}
+    wheels = (
+        OptionWheel.objects.filter(user=user, is_active=False)
+        .prefetch_related("option_purchases")
+        .select_related("stock_ticker")
+        .select_related("account")
+    )
     total_profit = 0
     total_collateral = 0
     sum_days_weighted_by_collateral = 0
@@ -549,7 +549,16 @@ def _setup_context_for_total_profit(wheels, context):
     no_quantity_wheel_count = 0
     collateral_on_the_line_per_day = defaultdict(float)
     profit_per_day = defaultdict(float)
+    yearly_account_profits = {}
+    accounts = []
     for wheel in wheels:
+        if (
+            wheel.collateral is None
+            or wheel.total_profit is None
+            or wheel.total_days_active is None
+        ):
+            # skip wheels that have incomplete data
+            continue
         wheel_collateral = wheel.collateral * wheel.quantity
         wheel_profit = wheel.total_profit * wheel.quantity
         total_profit += wheel_profit
@@ -564,6 +573,18 @@ def _setup_context_for_total_profit(wheels, context):
             collateral_on_the_line_per_day[day.strftime("%Y-%m-%d")] += float(
                 wheel_collateral
             )
+
+        year = wheel.expiration_date.year
+        account = wheel.account.name if wheel.account else "Unknown Account"
+        if year not in yearly_account_profits:
+            yearly_account_profits[year] = {"Total": 0}
+        if account not in yearly_account_profits[year]:
+            yearly_account_profits[year][account] = 0
+            if account not in accounts:
+                accounts.append(account)
+        yearly_account_profits[year][account] += 100 * wheel_profit
+        yearly_account_profits[year]["Total"] += 100 * wheel_profit
+
     context["total_profit"] = total_profit
     context["total_collateral"] = total_collateral
     context["total_profit_dollars"] = total_profit * 100
@@ -582,10 +603,14 @@ def _setup_context_for_total_profit(wheels, context):
         list(collateral_on_the_line_per_day.items())
     )
     context["profit_per_day"] = json.dumps(list(profit_per_day.items()))
-    context["max_collateral"] = max(collateral_on_the_line_per_day.values() or [0])
+    context["max_collateral"] = 100.0 * max(
+        collateral_on_the_line_per_day.values() or [0]
+    )
     context["annualized_rate_of_return_decimal"] = compute_annualized_rate_of_return(
         return_percentage, Decimal(1), total_days_active_average
     )
+    context["yearly_account_profits"] = yearly_account_profits
+    context["accounts"] = accounts
     return context
 
 
