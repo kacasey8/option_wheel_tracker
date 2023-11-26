@@ -136,7 +136,10 @@ def get_earnings(stockticker_name):
                 for d in yahoo_ticker.earnings_dates.index
                 if d.date() >= datetime.now().date()
             ]
-            result = sorted(future_earnings_dates)[0]
+            if len(future_earnings_dates) > 0:
+                result = sorted(future_earnings_dates)[0]
+            else:
+                result = "no earnings"
     except Exception as e:
         # Handle yahoo finance download failure.
         logger.error(f"failed to get {e}")
