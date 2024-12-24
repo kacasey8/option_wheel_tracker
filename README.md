@@ -55,6 +55,13 @@ https://fly.io/docs/postgres/getting-started/migrate-from-heroku/#provision-and-
 2. While proxy, set the following in your .env file at the root of the project
 `DATABASE_URL="postgres://postgres:<password>@localhost:5432/optionwheel"`
 
+# If production database dies (oom)
+https://fly.io/docs/postgres/managing/backup-and-restore/#restoring-from-a-snapshot
+1. Restore from snapshot (creates new database server)
+2. Detach old DB
+3. Attach new DB
+If current postgres is stuck, may need to manually delete DATABASE_URL via CLI `flyctl secrets unset DATABASE_URL`
+
 # Logs
 Run:
 `flyctl logs`
