@@ -10,6 +10,7 @@ import yfinance
 from django.core.cache import cache
 
 from .business_day_count import busday_count_inclusive
+from .constants import DELISTED_TICKERS
 from .implied_volatility import compute_delta
 
 logger = logging.getLogger(__name__)
@@ -172,6 +173,8 @@ def get_previous_close_price(stockticker_name):
 
 
 def _get_recent_closes(stockticker_name):
+    if stockticker_name in DELISTED_TICKERS:
+        return None
     cache_key = "get_recent_closes_" + stockticker_name
     cached_result = cache.get(cache_key)
     if cached_result is not None:
