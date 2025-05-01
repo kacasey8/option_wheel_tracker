@@ -4,6 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from json import JSONDecodeError
 
+import curl_cffi
 import mibian
 import numpy
 import yfinance
@@ -29,12 +30,17 @@ YAHOO_FINANCE_CACHE_TIMEOUT = 5 * 60  # 5 minutes
 YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 24 * 7  # 1 week
 
 
+def get_yahoo_ticker(stockticker_name: str) -> yfinance.Ticker:
+    session = curl_cffi.requests.Session(impersonate="chrome")
+    return yfinance.Ticker(stockticker_name, session=session)
+
+
 def _get_option_days(stockticker_name, maximum_option_days):
     cache_key = "_get_option_days" + stockticker_name + str(maximum_option_days)
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return cached_result
-    yahoo_ticker = yfinance.Ticker(stockticker_name)
+    yahoo_ticker = get_yahoo_ticker(stockticker_name)
     try:
         result = yahoo_ticker.options[:maximum_option_days]
         cache.set(cache_key, result, YAHOO_FINANCE_CACHE_TIMEOUT)
@@ -52,7 +58,7 @@ def _get_option_chain(stockticker_name, option_day, is_call):
     if cached_result is not None:
         return cached_result
     start = time.time()
-    yahoo_ticker = yfinance.Ticker(stockticker_name)
+    yahoo_ticker = get_yahoo_ticker(stockticker_name)
     option_chain = yahoo_ticker.option_chain(option_day)
     if is_call:
         result = option_chain.calls
@@ -127,7 +133,7 @@ def get_earnings(stockticker_name):
     result = False
     logger.info(f"starting earnings: {stockticker_name}")
     try:
-        yahoo_ticker = yfinance.Ticker(stockticker_name)
+        yahoo_ticker = get_yahoo_ticker(stockticker_name)
         if yahoo_ticker.earnings_dates is None:
             # handle tickers with no earnings
             result = "no earnings"
@@ -182,7 +188,7 @@ def _get_recent_closes(stockticker_name):
         return cached_result
     start = time.time()
     try:
-        yahoo_ticker = yfinance.Ticker(stockticker_name)
+        yahoo_ticker = get_yahoo_ticker(stockticker_name)
         yahoo_ticker_history = yahoo_ticker.history(period="10d")
     except JSONDecodeError:
         return None

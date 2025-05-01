@@ -19,6 +19,7 @@ rq = "^1.11.1"
 scipy = "^1.9.3"
 whitenoise = "^6.2.0"
 yfinance = "^0.2.31"
+curl-cffi = "^0.10.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
