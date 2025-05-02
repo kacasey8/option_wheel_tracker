@@ -224,7 +224,7 @@ class OptionWheel(models.Model):
     @property
     def cost_basis(self) -> Optional[Decimal]:
         revenue = self.revenue
-        if not revenue or not self.opening_purchase:
+        if revenue is None or not self.opening_purchase:
             return None
         return self.opening_purchase.strike - revenue
 
