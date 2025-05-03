@@ -4,7 +4,6 @@ from datetime import datetime
 from decimal import Decimal
 from json import JSONDecodeError
 
-import curl_cffi
 import mibian
 import numpy
 import yfinance
@@ -31,8 +30,7 @@ YAHOO_FINANCE_LONG_CACHE_TIMEOUT = 60 * 60 * 24 * 7  # 1 week
 
 
 def get_yahoo_ticker(stockticker_name: str) -> yfinance.Ticker:
-    session = curl_cffi.requests.Session(impersonate="chrome")
-    return yfinance.Ticker(stockticker_name, session=session)
+    return yfinance.Ticker(stockticker_name)
 
 
 def _get_option_days(stockticker_name, maximum_option_days):
