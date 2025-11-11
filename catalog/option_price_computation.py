@@ -187,7 +187,7 @@ def _get_recent_closes(stockticker_name):
     start = time.time()
     try:
         yahoo_ticker = get_yahoo_ticker(stockticker_name)
-        yahoo_ticker_history = yahoo_ticker.history(period="10d")
+        yahoo_ticker_history = yahoo_ticker.history(period="5d")
     except JSONDecodeError:
         return None
     if yahoo_ticker_history.empty:
