@@ -1,3 +1,4 @@
+import math
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
@@ -263,7 +264,7 @@ class OptionWheel(models.Model):
             self.open_strike = opening_purchase.strike
             if fetch_price:
                 current_price = get_current_price(self.stock_ticker.name)
-                if current_price is not None:
+                if current_price is not None and not math.isnan(current_price):
                     self.current_price = current_price
                     if current_price >= last_purchase.strike:
                         self.on_track = "Exit"
