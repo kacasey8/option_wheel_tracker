@@ -18,7 +18,7 @@ psycopg2-binary = "^2.9.5"
 rq = "^1.11.1"
 scipy = "^1.9.3"
 whitenoise = "^6.2.0"
-yfinance = "^0.2.31"
+yfinance = "^1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
